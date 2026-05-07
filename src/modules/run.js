@@ -65,6 +65,16 @@ export async function stRunFrom(startIndex) {
   }
 
   BP.stairsCurrent.lastRun = new Date().toISOString();
+  BP.stairsCurrent.runCount = (BP.stairsCurrent.runCount || 0) + 1;
+  const lastStep = BP.stairsCurrent.steps[BP.stairsCurrent.steps.length - 1];
+  const lastRes = lastStep ? BP.stairsOutputs[lastStep.id] : null;
+  if (lastRes?.ok) BP.stairsCurrent.successRuns = (BP.stairsCurrent.successRuns || 0) + 1;
+  if (BP.stairsOutputs) {
+    const totalDur = Object.entries(BP.stairsOutputs).reduce((sum, [id, r]) => {
+      return sum;
+    }, 0); // duration calculated per-step
+  }
+  BP.stairsCurrent.lastOk = lastRes?.ok !== false;
   await window.buildpipe.saveStaircase(BP.stairsCurrent);
 
   BP.stairsRunning = false;

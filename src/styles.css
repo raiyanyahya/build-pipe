@@ -531,7 +531,186 @@ html, body {
 .st-ai-desc-input::placeholder { opacity: 0.4; }
 
 /* ═══════════════════════════════════════════════════════════════
-   Canvas — Unified (vertical list + n8n canvas)
+   Dashboard
+═══════════════════════════════════════════════════════════════ */
+
+.st-dashboard {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 0;
+  display: flex; flex-direction: column;
+}
+
+.dash-hero {
+  padding: 36px 40px 28px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 1px solid var(--border-primary);
+}
+.dash-title {
+  font-size: 26px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: -0.02em; margin: 0 0 4px;
+}
+.dash-subtitle {
+  font-size: 13px; color: var(--text-primary); opacity: 0.45; margin: 0;
+}
+.dash-quick-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+.dash-btn {
+  font-size: 12.5px; font-weight: 600; padding: 8px 18px; border-radius: 8px;
+  border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.dash-btn-primary {
+  background: var(--text-primary); color: var(--bg-primary);
+  opacity: 0.9;
+}
+.dash-btn-primary:hover { opacity: 1; }
+.dash-btn-accent {
+  background: var(--accent-bg); color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+.dash-btn-accent:hover { background: var(--accent-bg-hover); }
+
+.dash-body {
+  display: flex; gap: 0; flex: 1; min-height: 0;
+}
+
+.dash-main {
+  flex: 1; padding: 28px 40px 40px;
+  overflow-y: auto; min-width: 0;
+}
+.dash-sidebar {
+  width: 200px; flex-shrink: 0;
+  padding: 28px 20px 20px;
+  border-left: 1px solid var(--border-primary);
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.dash-section { margin-bottom: 32px; }
+.dash-section-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.dash-section-title {
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
+  margin: 0;
+}
+.dash-section-count {
+  font-size: 11px; color: var(--text-primary); opacity: 0.4;
+}
+
+.dash-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.dash-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px; padding: 18px 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.dash-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+.dash-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dash-card-name {
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dash-card-status {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 100px;
+  background: rgba(128,128,128,0.1); color: var(--text-primary); opacity: 0.5;
+  flex-shrink: 0;
+}
+.dash-card-status.published { background: var(--success-bg); color: var(--success); opacity: 1; }
+.dash-card-meta {
+  display: flex; gap: 12px; font-size: 11px; color: var(--text-primary); opacity: 0.4;
+}
+.dash-card-types {
+  display: flex; gap: 6px; align-items: center;
+}
+.dash-card-type-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+}
+.dash-card-type-icon.type-code { background: var(--type-code-bg); color: var(--type-code); }
+.dash-card-type-icon.type-ai   { background: var(--type-ai-bg);   color: var(--type-ai); }
+.dash-card-type-icon.type-http { background: var(--type-http-bg); color: var(--type-http); }
+.dash-card-type-icon.type-file { background: var(--type-file-bg); color: var(--type-file); }
+.dash-card-more {
+  font-size: 10px; color: var(--text-primary); opacity: 0.3;
+  padding: 0 4px;
+}
+.dash-card-actions {
+  display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s;
+}
+.dash-card:hover .dash-card-actions { opacity: 1; }
+.dash-card-btn {
+  width: 28px; height: 28px; border: none; background: none; cursor: pointer;
+  border-radius: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-primary); opacity: 0.5; transition: all 0.12s;
+}
+.dash-card-btn:hover { opacity: 1; background: rgba(128,128,128,0.12); }
+.dash-card-btn.run:hover { color: var(--success); }
+.dash-card-btn.edit:hover { color: var(--info); }
+
+.dash-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 60px 20px; text-align: center;
+  color: var(--text-primary); opacity: 0.35;
+}
+.dash-empty p { font-size: 14px; margin: 0; }
+
+.dash-activity {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.dash-activity-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 8px;
+  transition: background 0.12s;
+}
+.dash-activity-item:hover { background: rgba(128,128,128,0.04); }
+.dash-activity-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.dash-activity-dot.ok  { background: var(--success); }
+.dash-activity-dot.err { background: var(--error); }
+.dash-activity-name {
+  flex: 1; font-size: 13px; font-weight: 500; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash-activity-time {
+  font-size: 11px; color: var(--text-primary); opacity: 0.35;
+  flex-shrink: 0;
+}
+.dash-activity-dur {
+  font-size: 11px; color: var(--text-primary); opacity: 0.45;
+  flex-shrink: 0; width: 40px; text-align: right;
+}
+
+.dash-stat-card {
+  padding: 14px; border-radius: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+}
+.dash-stat-value {
+  font-size: 24px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.dash-stat-label {
+  font-size: 10px; color: var(--text-primary); opacity: 0.4;
+  text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Canvas — Unified
 ═══════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════

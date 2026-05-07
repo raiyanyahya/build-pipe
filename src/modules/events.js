@@ -4,8 +4,16 @@ import { stLog } from './log.js';
 import { stSave, stLoadAll, stRenderCanvas, stAddStep } from './render.js';
 import { stRun } from './run.js';
 import { stAiBuild } from './ai-build.js';
+import { stRenderDashboard } from './dashboard.js';
 
 export function initEvents() {
+  stEl('stHomeBtn')?.addEventListener('click', () => {
+    BP.stairsCurrent = null;
+    BP.stairsOutputs = {};
+    document.querySelectorAll('.st-project-item').forEach(el => el.classList.remove('active'));
+    stRenderDashboard();
+  });
+
   stEl('stNewBtn')?.addEventListener('click', () => {
     BP.stairsCurrent = { id: stUid(), name: 'Untitled', steps: [], status: 'draft', created: new Date().toISOString() };
     BP.stairsOutputs = {};
@@ -41,8 +49,8 @@ export function initEvents() {
     BP.stairsCurrent = null;
     BP.stairsOutputs = {};
     stEl('stName').value = '';
-    stEl('stCanvas').innerHTML = '';
     stLoadAll();
+    stRenderDashboard();
   });
 
   stEl('stUndoBtn')?.addEventListener('click', () => BP.undo());

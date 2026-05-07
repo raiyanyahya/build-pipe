@@ -3,6 +3,7 @@ import { stLoadAll } from './modules/render.js';
 import { initEvents } from './modules/events.js';
 import { initSettings } from './modules/settings.js';
 import { stInitLog } from './modules/log.js';
+import { stRenderDashboard } from './modules/dashboard.js';
 
 function initTitlebar() {
   document.getElementById('winMinimize')?.addEventListener('click', () => window.buildpipe.winMinimize());
@@ -37,5 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initEvents();
   initSettings();
   stInitLog();
-  stLoadAll();
+  await stLoadAll();
+  stRenderDashboard();
 });

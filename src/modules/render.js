@@ -3,6 +3,7 @@ import BP from './state.js';
 import { stLog, stLoadLog } from './log.js';
 import { initDragDrop } from './dragdrop.js';
 import { initCanvas, destroyCanvas, zoomIn, zoomOut, fitToView } from './canvas.js';
+import { showEditor } from './dashboard.js';
 
 const ST_SAMPLE = {
   id: 'sample-morning-briefing',
@@ -74,7 +75,9 @@ export async function stLoadAll() {
     el.addEventListener('click', () => stOpen(sc));
     list.appendChild(el);
   }
-  if (all.length === 1 && !BP.stairsCurrent) stOpen(all[0]);
+  if (all.length === 1 && !BP.stairsCurrent) {
+    // Don't auto-open — dashboard is the default view
+  }
 
   BP.updateUndoButtons();
 }
@@ -90,6 +93,7 @@ export function stOpen(sc) {
     document.querySelectorAll('.st-project-item').forEach(el => {
       el.classList.toggle('active', el.dataset.id === sc.id);
     });
+    showEditor();
     stRenderCanvas();
     stLoadLog();
     BP.pushUndo();
