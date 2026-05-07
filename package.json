@@ -1,0 +1,58 @@
+{
+  "name": "buildpipe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "electron . --no-sandbox",
+    "start": "electron .",
+    "postinstall": "electron-builder install-app-deps",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
+  },
+  "build": {
+    "appId": "com.buildpipe.app",
+    "productName": "buildpipe",
+    "icon": "icons/icon.png",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "icons/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developertools",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "linux": {
+      "category": "Development",
+      "executableArgs": ["--no-sandbox"],
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "compression": "normal"
+  },
+  "devDependencies": {
+    "electron": "^40.0.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "openai": "^6.35.0"
+  }
+}

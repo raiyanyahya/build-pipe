@@ -1,0 +1,347 @@
+import { app, BrowserWindow, ipcMain, safeStorage } from 'electron';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+let OPENAI_API_KEY = process.env.OPENAI_API_KEY || null;
+let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || null;
+let KEY_FILE = null;
+let ANTHROPIC_KEY_FILE = null;
+
+const configDir = () => path.join(os.homedir(), '.buildpipe');
+const stairsDir = () => path.join(configDir(), 'staircases');
+const logDir = () => path.join(configDir(), 'logs');
+
+function stairsSafePath(filePath) {
+  const home = os.homedir();
+  const resolved = path.resolve(String(filePath).replace(/^~/, home));
+  if (resolved !== home && !resolved.startsWith(home + path.sep))
+    throw new Error('Path must be within home directory');
+  return resolved;
+}
+
+async function loadEncryptedKeys() {
+  KEY_FILE = path.join(configDir(), 'openai_key.enc');
+  ANTHROPIC_KEY_FILE = path.join(configDir(), 'anthropic_key.enc');
+  try {
+    await fs.promises.mkdir(configDir(), { recursive: true });
+    if (safeStorage.isEncryptionAvailable()) {
+      try {
+        const enc = await fs.promises.readFile(KEY_FILE);
+        OPENAI_API_KEY = safeStorage.decryptString(enc);
+      } catch {}
+      try {
+        const enc = await fs.promises.readFile(ANTHROPIC_KEY_FILE);
+        ANTHROPIC_API_KEY = safeStorage.decryptString(enc);
+      } catch {}
+    }
+  } catch (e) {
+    console.error('[buildpipe] Failed to load keys:', e?.message || e);
+  }
+}
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    minWidth: 900,
+    minHeight: 600,
+    title: 'buildpipe',
+    icon: path.join(__dirname, '..', 'icon.png'),
+    frame: false,
+    titleBarStyle: 'hiddenInset',
+    backgroundColor: '#1a1a2e',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'index.html'));
+
+  win.on('maximize', () => win.webContents.send('bp:maximizeChange', true));
+  win.on('unmaximize', () => win.webContents.send('bp:maximizeChange', false));
+
+  return win;
+}
+
+ipcMain.handle('bp:winMinimize', () => {
+  BrowserWindow.getFocusedWindow()?.minimize();
+});
+
+ipcMain.handle('bp:winMaximize', () => {
+  const w = BrowserWindow.getFocusedWindow();
+  if (w?.isMaximized()) w.unmaximize();
+  else w?.maximize();
+});
+
+ipcMain.handle('bp:winClose', () => {
+  BrowserWindow.getFocusedWindow()?.close();
+});
+
+ipcMain.handle('bp:winIsMaximized', () => {
+  return BrowserWindow.getFocusedWindow()?.isMaximized() || false;
+});
+
+app.whenReady().then(async () => {
+  await loadEncryptedKeys();
+  await fs.promises.mkdir(stairsDir(), { recursive: true });
+  await fs.promises.mkdir(logDir(), { recursive: true });
+  createWindow();
+  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+});
+
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+
+ipcMain.handle('bp:getConfigDir', () => configDir());
+
+// ── API Keys ─────────────────────────────────────────────────────────────────
+ipcMain.handle('bp:setApiKey', async (_e, key, provider = 'openai') => {
+  const trimmed = (key || '').trim() || null;
+  const isAnthropic = provider === 'anthropic';
+  if (isAnthropic) {
+    ANTHROPIC_API_KEY = trimmed;
+    try {
+      if (ANTHROPIC_API_KEY && ANTHROPIC_KEY_FILE && safeStorage.isEncryptionAvailable()) {
+        await fs.promises.writeFile(ANTHROPIC_KEY_FILE, safeStorage.encryptString(ANTHROPIC_API_KEY));
+      } else if (ANTHROPIC_KEY_FILE) {
+        await fs.promises.unlink(ANTHROPIC_KEY_FILE).catch(() => {});
+      }
+    } catch (e) { console.error('[buildpipe] Failed to persist anthropic key:', e?.message || e); }
+    return !!ANTHROPIC_API_KEY;
+  }
+  OPENAI_API_KEY = trimmed;
+  try {
+    if (OPENAI_API_KEY && KEY_FILE && safeStorage.isEncryptionAvailable()) {
+      await fs.promises.writeFile(KEY_FILE, safeStorage.encryptString(OPENAI_API_KEY));
+    } else if (KEY_FILE) {
+      await fs.promises.unlink(KEY_FILE).catch(() => {});
+    }
+  } catch (e) { console.error('[buildpipe] Failed to persist openai key:', e?.message || e); }
+  return !!OPENAI_API_KEY;
+});
+
+ipcMain.handle('bp:hasKey', async (_e, provider) => {
+  if (provider === 'anthropic') return !!ANTHROPIC_API_KEY;
+  if (provider === 'openai') return !!OPENAI_API_KEY;
+  return false;
+});
+
+ipcMain.handle('bp:clearKey', async (_e, provider) => {
+  if (provider === 'anthropic') {
+    ANTHROPIC_API_KEY = null;
+    try { if (ANTHROPIC_KEY_FILE) await fs.promises.unlink(ANTHROPIC_KEY_FILE); } catch {}
+    return true;
+  }
+  OPENAI_API_KEY = null;
+  try { if (KEY_FILE) await fs.promises.unlink(KEY_FILE); } catch {}
+  return true;
+});
+
+ipcMain.handle('bp:getModelSetting', async () => {
+  try {
+    const settings = JSON.parse(await fs.promises.readFile(path.join(configDir(), 'settings.json'), 'utf8'));
+    return settings.defaultModel || null;
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('bp:setModelSetting', async (_e, model) => {
+  let settings = {};
+  try { settings = JSON.parse(await fs.promises.readFile(path.join(configDir(), 'settings.json'), 'utf8')); } catch {}
+  settings.defaultModel = model;
+  await fs.promises.writeFile(path.join(configDir(), 'settings.json'), JSON.stringify(settings, null, 2));
+  return true;
+});
+
+ipcMain.handle('bp:getThemeSetting', async () => {
+  try {
+    const settings = JSON.parse(await fs.promises.readFile(path.join(configDir(), 'settings.json'), 'utf8'));
+    return settings.theme || 'dark';
+  } catch {
+    return 'dark';
+  }
+});
+
+ipcMain.handle('bp:setThemeSetting', async (_e, theme) => {
+  let settings = {};
+  try { settings = JSON.parse(await fs.promises.readFile(path.join(configDir(), 'settings.json'), 'utf8')); } catch {}
+  settings.theme = theme;
+  await fs.promises.writeFile(path.join(configDir(), 'settings.json'), JSON.stringify(settings, null, 2));
+  return true;
+});
+
+// ── AI Request ───────────────────────────────────────────────────────────────
+ipcMain.handle('bp:aiRequest', async (_e, payload) => {
+  const model = payload?.model || 'gpt-5.4-mini';
+  const isAnthropic = /^claude-/.test(model);
+
+  const apiKey = isAnthropic ? ANTHROPIC_API_KEY : OPENAI_API_KEY;
+  if (!apiKey) return { ok: false, error: `No API key configured for ${isAnthropic ? 'Claude' : 'OpenAI'}. Add one in Settings.` };
+
+  let system = payload?.system || 'You are a helpful AI assistant.';
+  let input;
+
+  if (Array.isArray(payload?.messages)) {
+    const lastMsg = payload.messages[payload.messages.length - 1];
+    input = lastMsg?.content || '';
+    const sysMsg = payload.messages.find(m => m.role === 'system');
+    if (sysMsg?.content) system = sysMsg.content;
+  } else {
+    input = String(payload?.input || '');
+  }
+
+  try {
+    const baseURL = isAnthropic ? 'https://api.anthropic.com/v1' : 'https://api.openai.com/v1';
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    };
+
+    if (isAnthropic) {
+      headers['anthropic-version'] = '2023-06-01';
+      const body = JSON.stringify({
+        model,
+        system,
+        messages: [{ role: 'user', content: input }],
+        max_tokens: payload?.maxTokens ?? 4096,
+      });
+
+      const res = await fetch(`${baseURL}/messages`, {
+        method: 'POST', headers, body,
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        return { ok: false, error: data.error.message || 'AI request failed' };
+      }
+
+      const text = data.content?.[0]?.text || '';
+      return { ok: true, text, output_text: text };
+    }
+
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: input });
+
+    const body = JSON.stringify({
+      model,
+      messages,
+      temperature: payload?.temperature ?? 0.7,
+      max_tokens: payload?.maxTokens ?? 4096,
+    });
+
+    const res = await fetch(`${baseURL}/chat/completions`, {
+      method: 'POST', headers, body,
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      return { ok: false, error: data.error.message || 'AI request failed' };
+    }
+
+    const text = data.choices?.[0]?.message?.content || '';
+    return { ok: true, text, output_text: text };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// ── Staircase management ─────────────────────────────────────────────────────
+ipcMain.handle('bp:listStaircases', async () => {
+  try {
+    await fs.promises.mkdir(stairsDir(), { recursive: true });
+    const files = (await fs.promises.readdir(stairsDir())).filter(f => f.endsWith('.json'));
+    const all = [];
+    for (const f of files) {
+      try { all.push(JSON.parse(await fs.promises.readFile(path.join(stairsDir(), f), 'utf8'))); } catch {}
+    }
+    return all.sort((a, b) => (b.created || '').localeCompare(a.created || ''));
+  } catch { return []; }
+});
+
+ipcMain.handle('bp:saveStaircase', async (_e, staircase) => {
+  await fs.promises.mkdir(stairsDir(), { recursive: true });
+  await fs.promises.writeFile(
+    path.join(stairsDir(), `${staircase.id}.json`),
+    JSON.stringify(staircase, null, 2),
+    'utf8'
+  );
+  return { ok: true };
+});
+
+ipcMain.handle('bp:deleteStaircase', async (_e, id) => {
+  try {
+    await fs.promises.unlink(path.join(stairsDir(), `${id}.json`));
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// ── Step execution ───────────────────────────────────────────────────────────
+ipcMain.handle('bp:runCode', async (_e, command) => {
+  return new Promise(resolve => {
+    exec(command, { timeout: 30000, shell: '/bin/bash' }, (err, stdout, stderr) => {
+      if (err) resolve({ ok: false, output: (stderr || err.message).trim() });
+      else resolve({ ok: true, output: stdout.trim() });
+    });
+  });
+});
+
+ipcMain.handle('bp:runHttp', async (_e, { url, method = 'GET', headers = {}, body }) => {
+  try {
+    let parsed;
+    try { parsed = new URL(url); } catch { return { ok: false, output: 'Invalid URL' }; }
+    if (!['http:', 'https:'].includes(parsed.protocol)) return { ok: false, output: 'Only http/https URLs are allowed' };
+    const h = parsed.hostname.toLowerCase();
+    if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.local') ||
+        /^10\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h))
+      return { ok: false, output: 'Requests to private/localhost addresses are not allowed' };
+    const opts = { method, headers: { 'Content-Type': 'application/json', ...headers } };
+    if (body) opts.body = typeof body === 'string' ? body : JSON.stringify(body);
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    return { ok: res.ok, status: res.status, output: text };
+  } catch (e) { return { ok: false, output: e.message }; }
+});
+
+ipcMain.handle('bp:fileRead', async (_e, filePath) => {
+  try {
+    return { ok: true, output: await fs.promises.readFile(stairsSafePath(filePath), 'utf8') };
+  } catch (e) { return { ok: false, output: e.message }; }
+});
+
+ipcMain.handle('bp:fileWrite', async (_e, { path: filePath, content }) => {
+  try {
+    const resolved = stairsSafePath(filePath);
+    await fs.promises.mkdir(path.dirname(resolved), { recursive: true });
+    await fs.promises.writeFile(resolved, content, 'utf8');
+    return { ok: true, output: `Written to ${filePath}` };
+  } catch (e) { return { ok: false, output: e.message }; }
+});
+
+// ── Log persistence ──────────────────────────────────────────────────────────
+ipcMain.handle('bp:saveLog', async (_e, { staircaseId, logText }) => {
+  try {
+    await fs.promises.mkdir(logDir(), { recursive: true });
+    const logFile = path.join(logDir(), `${staircaseId}.log`);
+    await fs.promises.writeFile(logFile, logText, 'utf8');
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('bp:loadLog', async (_e, staircaseId) => {
+  try {
+    const logFile = path.join(logDir(), `${staircaseId}.log`);
+    return { ok: true, content: await fs.promises.readFile(logFile, 'utf8') };
+  } catch { return { ok: false, content: '' }; }
+});
