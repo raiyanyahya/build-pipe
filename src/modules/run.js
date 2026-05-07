@@ -84,7 +84,10 @@ export async function stRunFrom(startIndex) {
     });
 
     if (res.ok) {
-      stLog(`✓ Done (${dur}s)`, 'log-ok');
+      const durLabel = parseFloat(dur) < 1
+        ? `${Math.round(parseFloat(dur) * 1000)}ms`
+        : `${dur}s`;
+      stLog(`✓ ${stepLabel} — ${durLabel}`, 'log-ok');
       if (res.output) stLog(res.output.slice(0, 300), 'log-dim');
       if (res.halt) {
         stLog(`⊘ ${stepLabel}: condition not met — pipeline halted`, 'log-dim');
