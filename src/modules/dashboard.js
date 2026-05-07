@@ -50,6 +50,16 @@ export async function stRenderDashboard() {
   if (topbar) topbar.style.display = 'none';
   if (addRow) addRow.style.display = 'none';
 
+  const logPanel = document.getElementById('stLogPanel');
+  const logToggle = document.getElementById('stLogEdgeToggle');
+  if (logPanel) logPanel.classList.add('collapsed');
+  if (logToggle) logToggle.classList.add('collapsed');
+
+  const sidebar = document.getElementById('stSidebar');
+  const sidebarToggle = document.getElementById('stSidebarEdgeToggle');
+  if (sidebar) sidebar.classList.add('collapsed');
+  if (sidebarToggle) sidebarToggle.classList.add('collapsed');
+
   const all          = await window.buildpipe.listStaircases();
   const model        = await window.buildpipe.getModelSetting();
   const aiProvider   = model && /^claude-/.test(model) ? 'anthropic' : 'openai';
@@ -151,6 +161,7 @@ export async function stRenderDashboard() {
       <section class="dash-section">
         <div class="dash-section-header">
           <h2 class="dash-section-title">Pipelines</h2>
+          ${all.length ? `<input id="dashSearch" class="dash-search" type="text" placeholder="Search pipelines…" autocomplete="off">` : ''}
         </div>
         ${all.length ? `
         <div class="dash-card-grid">
@@ -299,6 +310,14 @@ export async function stRenderDashboard() {
   });
   document.getElementById('dashModelPill')?.addEventListener('click', () => {
     stEl('stSettingsBtn')?.click();
+  });
+
+  document.getElementById('dashSearch')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.dash-card[data-id]').forEach(card => {
+      const name = (card.querySelector('.dash-card-name')?.textContent || '').toLowerCase();
+      card.style.display = !q || name.includes(q) ? '' : 'none';
+    });
   });
 }
 

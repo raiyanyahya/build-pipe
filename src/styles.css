@@ -867,8 +867,16 @@ html, body {
 /* ── Sections ───────────────────────────────────────────────── */
 .dash-section { display: flex; flex-direction: column; gap: 14px; }
 .dash-section-header {
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
 }
+.dash-search {
+  background: var(--bg-input); border: 1px solid var(--border-primary);
+  color: var(--text-primary); border-radius: 7px; padding: 5px 10px;
+  font-size: 12px; width: 180px; outline: none;
+  transition: border-color 0.15s;
+}
+.dash-search:focus { border-color: var(--accent); }
+.dash-search::placeholder { color: var(--text-muted); }
 .dash-section-title {
   font-size: 15px; font-weight: 700; color: var(--text-primary);
   margin: 0; letter-spacing: -0.005em;
