@@ -1003,6 +1003,9 @@ html, body {
 .dash-card-btn:hover { opacity: 1; transform: scale(1.06); }
 .dash-card-btn.run:hover  { color: var(--success); border-color: var(--success-border); background: var(--success-bg); }
 .dash-card-btn.edit:hover { color: var(--info);    border-color: var(--info-border);    background: var(--info-bg); }
+.dash-card-btn.pin { color: var(--text-muted); }
+.dash-card-btn.pin.pinned { color: var(--warning); }
+.dash-card.pinned { border-color: var(--warning); }
 
 /* "New pipeline" tile */
 .dash-card-new {
