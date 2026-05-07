@@ -72,6 +72,7 @@ export async function stRenderDashboard() {
   const successRate  = totalRuns ? Math.round(successRuns / Math.max(1, totalRuns) * 100) : null;
   const recent       = all.filter(s => s.lastRun)
                           .sort((a, b) => (b.lastRun || '').localeCompare(a.lastRun || ''));
+  const sorted = [...all].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
   const typeIcon = t => ({
     code: `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
@@ -172,13 +173,13 @@ export async function stRenderDashboard() {
             <div class="dash-card-new-label">New Pipeline</div>
             <div class="dash-card-new-sub">Start blank or use AI</div>
           </button>
-          ${all.map(s => {
+          ${sorted.map(s => {
             const stepCount    = (s.steps || []).length;
             const stepsPreview = (s.steps || []).slice(0, 4);
             const extra        = stepCount - stepsPreview.length;
             const status       = s.status === 'published' ? 'published' : 'draft';
             return `
-            <div class="dash-card ${status}" data-id="${s.id}">
+            <div class="dash-card ${status}${s.pinned ? ' pinned' : ''}" data-id="${s.id}">
               <div class="dash-card-glow"></div>
               <div class="dash-card-header">
                 <div class="dash-card-name" title="${(s.name || 'Untitled').replace(/"/g, '&quot;')}">${s.name || 'Untitled'}</div>
@@ -199,6 +200,9 @@ export async function stRenderDashboard() {
                 <span class="dash-card-meta">${stepCount} step${stepCount === 1 ? '' : 's'}</span>
               </div>
               <div class="dash-card-actions">
+                <button class="dash-card-btn pin ${s.pinned ? 'pinned' : ''}" data-card-pin="${s.id}" title="${s.pinned ? 'Unpin' : 'Pin'}">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="${s.pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </button>
                 <button class="dash-card-btn run"  data-card-run="${s.id}"  title="Run">
                   <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
                 </button>
@@ -272,6 +276,18 @@ export async function stRenderDashboard() {
         const { stRun } = await import('./run.js');
         stRun();
       }, 300);
+    });
+  });
+
+  dash.querySelectorAll('[data-card-pin]').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = btn.dataset.cardPin;
+      const sc = all.find(s => s.id === id);
+      if (!sc) return;
+      sc.pinned = !sc.pinned;
+      await window.buildpipe.saveStaircase(sc);
+      stRenderDashboard();
     });
   });
 
