@@ -53,6 +53,8 @@
             <span id="stPublishedBadge" class="st-badge st-badge-published hidden">Published</span>
             <button id="stUndoBtn" class="st-btn st-btn-undo hidden" title="Undo (Ctrl+Z)">↩ Undo</button>
             <button id="stRedoBtn" class="st-btn st-btn-redo hidden" title="Redo (Ctrl+Shift+Z)">↪ Redo</button>
+            <button id="stTriggersBtn" class="st-btn" title="Configure triggers">⚡ Triggers</button>
+            <button id="stHistoryBtn" class="st-btn" title="Run history">⏱ History</button>
             <button id="stAiBuildBtn" class="st-btn st-btn-ai">✦ Build</button>
             <button id="stRunBtn" class="st-btn st-btn-run">▶ Run</button>
             <button id="stStopBtn" class="st-btn st-btn-stop hidden">■ Stop</button>
@@ -97,6 +99,9 @@
             <button data-type="ai">✦ AI</button>
             <button data-type="http">↗ HTTP</button>
             <button data-type="file"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg> File</button>
+            <button data-type="if">› If</button>
+            <button data-type="loop">↺ Loop</button>
+            <button data-type="notify">🔔 Notify</button>
           </div>
           <div class="st-spacer"></div>
           <button id="stSidebarEdgeToggle" class="st-bar-btn collapsed" title="Toggle sidebar">
@@ -148,6 +153,16 @@
           <button id="stApiKeySave" class="st-btn st-btn-run" style="margin-top:16px;width:100%;">Save Settings</button>
           <div id="stSettingsStatus" class="st-settings-status hidden"></div>
           <div class="st-settings-section">
+            <div class="st-settings-section-title">Variables</div>
+            <div class="st-settings-section-desc">Use <code>{{vars.KEY}}</code> in any step field to reference a variable.</div>
+            <div id="stVarsList" class="st-vars-list"></div>
+            <div class="st-vars-add-row">
+              <input id="stVarsNewKey" class="st-field-input" placeholder="KEY" style="flex:1;min-width:0;" />
+              <input id="stVarsNewVal" class="st-field-input" placeholder="value" style="flex:2;min-width:0;" />
+              <button id="stVarsAddBtn" class="st-btn st-btn-run">Add</button>
+            </div>
+          </div>
+          <div class="st-settings-section">
             <div class="st-settings-section-title">Color Theme</div>
             <div class="st-theme-presets">
               <button id="stTheme-dark" class="st-theme-preset p-dark active" title="Dark"></button>
@@ -176,6 +191,9 @@
   <script type="module" src="modules/ai-build.js"></script>
   <script type="module" src="modules/events.js"></script>
   <script type="module" src="modules/settings.js"></script>
+  <script type="module" src="modules/triggers.js"></script>
+  <script type="module" src="modules/history.js"></script>
+  <script type="module" src="modules/templates.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

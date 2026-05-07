@@ -1,10 +1,12 @@
 import { stEl, stUid } from './utils.js';
 import BP from './state.js';
 import { stLog } from './log.js';
-import { stSave, stLoadAll, stRenderCanvas, stAddStep } from './render.js';
+import { stSave, stLoadAll, stRenderCanvas, stAddStep, stOpen } from './render.js';
 import { stRun } from './run.js';
 import { stAiBuild } from './ai-build.js';
 import { stRenderDashboard } from './dashboard.js';
+import { stShowTriggersModal } from './triggers.js';
+import { stShowHistoryModal } from './history.js';
 
 function goHome() {
   BP.stairsCurrent = null;
@@ -58,6 +60,19 @@ export function initEvents() {
 
   stEl('stUndoBtn')?.addEventListener('click', () => BP.undo());
   stEl('stRedoBtn')?.addEventListener('click', () => BP.redo());
+
+  stEl('stTriggersBtn')?.addEventListener('click', stShowTriggersModal);
+  stEl('stHistoryBtn')?.addEventListener('click', stShowHistoryModal);
+
+  // When a trigger fires from main process, run the target pipeline
+  window.buildpipe.onTriggerFired(async (pipelineId) => {
+    const all = await window.buildpipe.listStaircases();
+    const sc  = all.find(s => s.id === pipelineId);
+    if (!sc) return;
+    stLog(`⚡ Trigger fired for "${sc.name}"`, 'log-ai');
+    stOpen(sc);
+    setTimeout(() => { import('./run.js').then(({ stRun }) => stRun()); }, 300);
+  });
 
   stEl('stAiBuildBtn')?.addEventListener('click', () => {
     stEl('stAiBuildBar').classList.toggle('hidden');

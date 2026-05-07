@@ -16,6 +16,7 @@ export function initSettings() {
   stEl('stSettingsBtn')?.addEventListener('click', () => {
     stEl('stSettingsPanel').classList.remove('hidden');
     loadSettings();
+    renderVars();
   });
 
   stEl('stSettingsClose')?.addEventListener('click', () => {
@@ -67,6 +68,17 @@ export function initSettings() {
   THEME_LIST.forEach(theme => {
     stEl(`stTheme-${theme}`)?.addEventListener('click', () => selectTheme(theme));
   });
+
+  stEl('stVarsAddBtn')?.addEventListener('click', async () => {
+    const keyEl = stEl('stVarsNewKey');
+    const valEl = stEl('stVarsNewVal');
+    const key   = keyEl?.value.trim();
+    const val   = valEl?.value.trim();
+    if (!key) return;
+    await window.buildpipe.setVar(key, val || '');
+    keyEl.value = ''; valEl.value = '';
+    renderVars();
+  });
 }
 
 function selectTheme(theme) {
@@ -95,4 +107,27 @@ async function loadSettings() {
   if (theme && THEME_LIST.includes(theme)) {
     selectTheme(theme);
   }
+}
+
+async function renderVars() {
+  const container = stEl('stVarsList');
+  if (!container) return;
+  const vars = await window.buildpipe.listVars();
+  const entries = Object.entries(vars);
+  if (!entries.length) {
+    container.innerHTML = '<div class="st-vars-empty">No variables yet. Reference them as <code>{{vars.KEY}}</code> in any step.</div>';
+    return;
+  }
+  container.innerHTML = entries.map(([k, v]) => `
+    <div class="st-var-row">
+      <code class="st-var-key">${k}</code>
+      <span class="st-var-val">${v.length > 30 ? v.slice(0, 30) + '…' : v}</span>
+      <button class="st-var-del" data-varkey="${k}">×</button>
+    </div>`).join('');
+  container.querySelectorAll('.st-var-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await window.buildpipe.deleteVar(btn.dataset.varkey);
+      renderVars();
+    });
+  });
 }

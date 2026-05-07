@@ -9,10 +9,11 @@ export const stTplVars = () => ({
   timestamp: Date.now().toString(),
 });
 
-export function stResolve(str, outputs) {
+export function stResolve(str, outputs, vars = {}) {
   if (!str) return str;
-  const vars = stTplVars();
-  let s = str.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
+  const builtins = stTplVars();
+  let s = str.replace(/\{\{vars\.(\w+)\}\}/g, (_, k) => vars[k] ?? `{{vars.${k}}}`);
+  s = s.replace(/\{\{(\w+)\}\}/g, (_, k) => builtins[k] ?? `{{${k}}}`);
   s = s.replace(/\{\{(\w+)\.output\}\}/g, (_, id) => {
     const o = outputs[id];
     return o ? o.output : `{{${id}.output}}`;

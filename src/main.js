@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain, safeStorage } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, Notification } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,9 +13,70 @@ let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || null;
 let KEY_FILE = null;
 let ANTHROPIC_KEY_FILE = null;
 
-const configDir = () => path.join(os.homedir(), '.buildpipe');
-const stairsDir = () => path.join(configDir(), 'staircases');
-const logDir = () => path.join(configDir(), 'logs');
+const configDir   = () => path.join(os.homedir(), '.buildpipe');
+const stairsDir   = () => path.join(configDir(), 'staircases');
+const logDir      = () => path.join(configDir(), 'logs');
+const runsDir     = () => path.join(configDir(), 'runs');
+const triggersFile = () => path.join(configDir(), 'triggers.json');
+const varsFile    = () => path.join(configDir(), 'vars.json');
+
+// ── Active trigger state ──────────────────────────────────────────────────────
+const activeTriggers = new Map(); // pipelineId → { cancel() }
+let webhookServer = null;
+
+function deactivateTrigger(pipelineId) {
+  const t = activeTriggers.get(pipelineId);
+  if (t) { t.cancel(); activeTriggers.delete(pipelineId); }
+}
+
+function activateTrigger(trigger) {
+  deactivateTrigger(trigger.pipelineId);
+  const getWin = () => BrowserWindow.getAllWindows()[0];
+  const fire = () => getWin()?.webContents.send('bp:triggerFired', trigger.pipelineId);
+
+  if (trigger.type === 'cron') {
+    const ms = Math.max(60, parseInt(trigger.config?.intervalMinutes) || 15) * 60000;
+    const timer = setInterval(fire, ms);
+    activeTriggers.set(trigger.pipelineId, { cancel: () => clearInterval(timer) });
+  }
+  if (trigger.type === 'watch') {
+    try {
+      const watchPath = String(trigger.config?.path || '').replace(/^~/, os.homedir());
+      let debounce = null;
+      const watcher = fs.watch(watchPath, () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(fire, 500);
+      });
+      activeTriggers.set(trigger.pipelineId, { cancel: () => watcher.close() });
+    } catch (e) { console.error('[buildpipe] watch error:', e?.message); }
+  }
+  if (trigger.type === 'webhook') {
+    if (!webhookServer) {
+      const port = parseInt(trigger.config?.port) || 9876;
+      webhookServer = createServer((req, res) => {
+        if (req.method === 'POST') {
+          const m = req.url.match(/^\/run\/([^/?#]+)/);
+          if (m) {
+            getWin()?.webContents.send('bp:triggerFired', m[1]);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end('{"ok":true}');
+            return;
+          }
+        }
+        res.writeHead(404); res.end();
+      });
+      webhookServer.listen(port, '127.0.0.1');
+    }
+    activeTriggers.set(trigger.pipelineId, { cancel: () => {} });
+  }
+}
+
+async function loadAndActivateTriggers() {
+  try {
+    const triggers = JSON.parse(await fs.promises.readFile(triggersFile(), 'utf8'));
+    for (const t of Object.values(triggers)) activateTrigger(t);
+  } catch {}
+}
 
 function stairsSafePath(filePath) {
   const home = os.homedir();
@@ -92,7 +154,9 @@ app.whenReady().then(async () => {
   await loadEncryptedKeys();
   await fs.promises.mkdir(stairsDir(), { recursive: true });
   await fs.promises.mkdir(logDir(), { recursive: true });
+  await fs.promises.mkdir(runsDir(), { recursive: true });
   createWindow();
+  await loadAndActivateTriggers();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 
@@ -354,4 +418,85 @@ ipcMain.handle('bp:loadLog', async (_e, staircaseId) => {
     const logFile = path.join(logDir(), `${staircaseId}.log`);
     return { ok: true, content: await fs.promises.readFile(logFile, 'utf8') };
   } catch { return { ok: false, content: '' }; }
+});
+
+// ── Triggers ─────────────────────────────────────────────────────────────────
+ipcMain.handle('bp:listTriggers', async () => {
+  try { return JSON.parse(await fs.promises.readFile(triggersFile(), 'utf8')); } catch { return {}; }
+});
+
+ipcMain.handle('bp:setTrigger', async (_e, trigger) => {
+  let triggers = {};
+  try { triggers = JSON.parse(await fs.promises.readFile(triggersFile(), 'utf8')); } catch {}
+  triggers[trigger.pipelineId] = trigger;
+  await fs.promises.writeFile(triggersFile(), JSON.stringify(triggers, null, 2));
+  activateTrigger(trigger);
+  return { ok: true };
+});
+
+ipcMain.handle('bp:removeTrigger', async (_e, pipelineId) => {
+  let triggers = {};
+  try { triggers = JSON.parse(await fs.promises.readFile(triggersFile(), 'utf8')); } catch {}
+  delete triggers[pipelineId];
+  await fs.promises.writeFile(triggersFile(), JSON.stringify(triggers, null, 2));
+  deactivateTrigger(pipelineId);
+  return { ok: true };
+});
+
+// ── Variables store ───────────────────────────────────────────────────────────
+ipcMain.handle('bp:listVars', async () => {
+  try { return JSON.parse(await fs.promises.readFile(varsFile(), 'utf8')); } catch { return {}; }
+});
+
+ipcMain.handle('bp:setVar', async (_e, key, value) => {
+  let vars = {};
+  try { vars = JSON.parse(await fs.promises.readFile(varsFile(), 'utf8')); } catch {}
+  vars[String(key).trim()] = String(value);
+  await fs.promises.writeFile(varsFile(), JSON.stringify(vars, null, 2));
+  return { ok: true };
+});
+
+ipcMain.handle('bp:deleteVar', async (_e, key) => {
+  let vars = {};
+  try { vars = JSON.parse(await fs.promises.readFile(varsFile(), 'utf8')); } catch {}
+  delete vars[key];
+  await fs.promises.writeFile(varsFile(), JSON.stringify(vars, null, 2));
+  return { ok: true };
+});
+
+// ── Run history ───────────────────────────────────────────────────────────────
+ipcMain.handle('bp:saveRun', async (_e, run) => {
+  try {
+    await fs.promises.mkdir(runsDir(), { recursive: true });
+    await fs.promises.writeFile(path.join(runsDir(), `${run.id}.json`), JSON.stringify(run, null, 2), 'utf8');
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('bp:listRuns', async (_e, pipelineId) => {
+  try {
+    await fs.promises.mkdir(runsDir(), { recursive: true });
+    const files = (await fs.promises.readdir(runsDir())).filter(f => f.endsWith('.json'));
+    const all = [];
+    for (const f of files) {
+      try {
+        const run = JSON.parse(await fs.promises.readFile(path.join(runsDir(), f), 'utf8'));
+        if (!pipelineId || run.pipelineId === pipelineId) all.push(run);
+      } catch {}
+    }
+    return all.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || '')).slice(0, 100);
+  } catch { return []; }
+});
+
+ipcMain.handle('bp:getRun', async (_e, runId) => {
+  try { return JSON.parse(await fs.promises.readFile(path.join(runsDir(), `${runId}.json`), 'utf8')); }
+  catch { return null; }
+});
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+ipcMain.handle('bp:notify', (_e, { title, body }) => {
+  try {
+    if (Notification.isSupported()) new Notification({ title: title || 'buildpipe', body: body || '' }).show();
+  } catch {}
+  return { ok: true, output: `Notification sent: ${title}` };
 });

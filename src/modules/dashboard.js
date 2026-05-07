@@ -1,5 +1,6 @@
 import { stEl, stUid, stFmt } from './utils.js';
 import BP from './state.js';
+import { stShowTemplatesModal } from './templates.js';
 
 async function openPipeline(sc) {
   const { stOpen } = await import('./render.js');
@@ -90,6 +91,10 @@ export async function stRenderDashboard() {
           </div>
           <button id="dashSettingsBtn" class="dash-icon-btn" title="Settings">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button id="dashTemplatesBtn" class="dash-btn">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Templates
           </button>
           <button id="dashAiBuildBtn" class="dash-btn dash-btn-accent">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5L19 10l-5.2 2L12 17l-1.8-5L5 10l5.2-2z"/></svg>
@@ -287,6 +292,7 @@ export async function stRenderDashboard() {
   const openAiModal = () => stShowAiBuildModal();
   document.getElementById('dashAiBuildBtn')?.addEventListener('click',  openAiModal);
   document.getElementById('dashEmptyAi')?.addEventListener('click',  openAiModal);
+  document.getElementById('dashTemplatesBtn')?.addEventListener('click', stShowTemplatesModal);
 
   document.getElementById('dashSettingsBtn')?.addEventListener('click', () => {
     stEl('stSettingsBtn')?.click();
