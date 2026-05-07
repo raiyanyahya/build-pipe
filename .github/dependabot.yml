@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: electron
+        update-types: ["version-update:semver-major"]
+    groups:
+      electron:
+        patterns:
+          - "electron"
+          - "electron-builder"

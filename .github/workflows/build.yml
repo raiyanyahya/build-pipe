@@ -1,0 +1,128 @@
+name: Build & Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Step 1: read version from package.json ────────────────────────────────
+  prepare:
+    name: Read version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.read.outputs.version }}
+      tag:     ${{ steps.read.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read version
+        id: read
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}"  >> "$GITHUB_OUTPUT"
+
+  # ── Step 2a: macOS DMG ────────────────────────────────────────────────────
+  build-mac:
+    name: macOS DMG
+    needs: prepare
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          npm_config_python: python3.11
+
+      - name: Package DMG
+        run: npm run dist:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-dmg
+          path: dist/*.dmg
+          retention-days: 7
+
+  # ── Step 2b: Linux AppImage + deb ─────────────────────────────────────────
+  build-linux:
+    name: Linux (AppImage + deb)
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          npm_config_python: python3.11
+
+      - name: Package Linux artifacts
+        run: npm run dist:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+          retention-days: 7
+
+  # ── Step 3: publish GitHub Release ────────────────────────────────────────
+  release:
+    name: Publish Release
+    needs: [prepare, build-mac, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release ${{ needs.prepare.outputs.tag }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: buildpipe ${{ needs.prepare.outputs.tag }}
+          generate_release_notes: true
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
