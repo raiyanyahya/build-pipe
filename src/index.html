@@ -23,7 +23,9 @@
       <div class="st-sidebar" id="stSidebar">
         <div class="st-sidebar-header">
           <span class="st-sidebar-title">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <button id="stHomeBtn" class="st-icon-btn" title="Dashboard" style="margin-right:4px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </button>
             Pipelines
           </span>
           <button id="stNewBtn" class="st-icon-btn" title="New pipeline">+</button>
@@ -63,8 +65,9 @@
           <button id="stAiBuildClose" class="st-btn">✕</button>
         </div>
 
-        <div class="st-canvas-wrap">
-          <div id="stCanvas" class="st-canvas">
+        <div class="st-canvas-wrap" id="stCanvasWrap">
+          <div id="stDashboard" class="st-dashboard" style="display:block;"></div>
+          <div id="stCanvas" class="st-canvas" style="display:none;">
             <svg id="stCanvasSvg" class="st-canvas-svg"></svg>
             <div id="stCanvasNodes" class="st-canvas-nodes"></div>
             <div id="stEmpty" class="st-empty" style="display:none;">
@@ -164,6 +167,7 @@
   <script type="module" src="modules/dragdrop.js"></script>
   <script type="module" src="modules/canvas.js"></script>
   <script type="module" src="modules/steps.js"></script>
+  <script type="module" src="modules/dashboard.js"></script>
   <script type="module" src="modules/run.js"></script>
   <script type="module" src="modules/ai-build.js"></script>
   <script type="module" src="modules/events.js"></script>
