@@ -82,7 +82,9 @@ export function initSettings() {
 
   const osScheme = window.matchMedia('(prefers-color-scheme: dark)');
   const applyOsTheme = () => selectTheme(osScheme.matches ? 'dark' : 'light');
-  applyOsTheme();
+  window.buildpipe.getThemeSetting().then(saved => {
+    if (!saved) applyOsTheme();
+  });
   osScheme.addEventListener('change', applyOsTheme);
 }
 
