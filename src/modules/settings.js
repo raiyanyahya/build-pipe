@@ -6,7 +6,7 @@ const THEME_MODELS = {
   anthropic: 'claude-sonnet-4-6',
 };
 
-const THEME_LIST = ['dark', 'ocean', 'forest', 'sunset', 'midnight', 'light', 'cream'];
+const THEME_LIST = ['dark', 'ocean', 'forest', 'sunset', 'midnight', 'light', 'cream', 'rose', 'nord', 'amber', 'dracula'];
 
 function providerFor(model) {
   return /^claude-/.test(model) ? 'anthropic' : 'openai';
@@ -79,6 +79,11 @@ export function initSettings() {
     keyEl.value = ''; valEl.value = '';
     renderVars();
   });
+
+  const osScheme = window.matchMedia('(prefers-color-scheme: dark)');
+  const applyOsTheme = () => selectTheme(osScheme.matches ? 'dark' : 'light');
+  applyOsTheme();
+  osScheme.addEventListener('change', applyOsTheme);
 }
 
 function selectTheme(theme) {
