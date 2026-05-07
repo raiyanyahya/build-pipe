@@ -6,13 +6,16 @@ import { stRun } from './run.js';
 import { stAiBuild } from './ai-build.js';
 import { stRenderDashboard } from './dashboard.js';
 
+function goHome() {
+  BP.stairsCurrent = null;
+  BP.stairsOutputs = {};
+  document.querySelectorAll('.st-project-item').forEach(el => el.classList.remove('active'));
+  stRenderDashboard();
+}
+
 export function initEvents() {
-  stEl('stHomeBtn')?.addEventListener('click', () => {
-    BP.stairsCurrent = null;
-    BP.stairsOutputs = {};
-    document.querySelectorAll('.st-project-item').forEach(el => el.classList.remove('active'));
-    stRenderDashboard();
-  });
+  stEl('stHomeBtn')?.addEventListener('click', goHome);
+  stEl('stTopHomeBtn')?.addEventListener('click', goHome);
 
   stEl('stNewBtn')?.addEventListener('click', () => {
     BP.stairsCurrent = { id: stUid(), name: 'Untitled', steps: [], status: 'draft', created: new Date().toISOString() };

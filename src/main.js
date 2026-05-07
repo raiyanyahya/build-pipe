@@ -179,11 +179,21 @@ ipcMain.handle('bp:setThemeSetting', async (_e, theme) => {
 
 // ── AI Request ───────────────────────────────────────────────────────────────
 ipcMain.handle('bp:aiRequest', async (_e, payload) => {
-  const model = payload?.model || 'gpt-5.4-mini';
-  const isAnthropic = /^claude-/.test(model);
+  // resolve model: payload → settings file → fallback
+  let model = payload?.model;
+  if (!model) {
+    try {
+      const settings = JSON.parse(
+        await fs.promises.readFile(path.join(configDir(), 'settings.json'), 'utf8')
+      );
+      model = settings.defaultModel;
+    } catch {}
+  }
+  if (!model) model = 'gpt-4o-mini';
 
+  const isAnthropic = /^claude-/.test(model);
   const apiKey = isAnthropic ? ANTHROPIC_API_KEY : OPENAI_API_KEY;
-  if (!apiKey) return { ok: false, error: `No API key configured for ${isAnthropic ? 'Claude' : 'OpenAI'}. Add one in Settings.` };
+  if (!apiKey) return { ok: false, error: `No API key configured for ${isAnthropic ? 'Anthropic' : 'OpenAI'}. Open Settings to add one.` };
 
   let system = payload?.system || 'You are a helpful AI assistant.';
   let input;

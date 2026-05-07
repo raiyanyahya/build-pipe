@@ -32,9 +32,19 @@ Use {{step_id.output}} to chain steps. Keep steps focused and lean.`;
         { role: 'user', content: `Create a pipeline automation for: ${description}` }
       ]
     });
-    const text = res?.output_text || res?.choices?.[0]?.message?.content || '';
-    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const data = JSON.parse(jsonStr);
+    if (res?.ok === false) throw new Error(res.error || 'AI request failed');
+
+    const text = res?.output_text || res?.text || res?.choices?.[0]?.message?.content || '';
+    if (!text) throw new Error('AI returned an empty response — check your API key in Settings.');
+
+    // strip fences then find first {...} block
+    const clean = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*/g, '').trim();
+    let data;
+    try { data = JSON.parse(clean); } catch {
+      const s = clean.indexOf('{'), e = clean.lastIndexOf('}');
+      if (s !== -1 && e > s) data = JSON.parse(clean.slice(s, e + 1));
+      else throw new Error('Could not parse pipeline JSON from AI response');
+    }
 
     if (!BP.stairsCurrent) {
       BP.stairsCurrent = { id: stUid(), name: data.name || 'Untitled', steps: [], status: 'draft', created: new Date().toISOString() };
