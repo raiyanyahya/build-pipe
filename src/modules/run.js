@@ -121,7 +121,7 @@ export async function stRunFrom(startIndex) {
         return total < 1 ? `${Math.round(total * 1000)}ms` : `${total.toFixed(1)}s`;
       })()
     : null;
-  await window.buildpipe.saveStaircase(BP.stairsCurrent);
+  await window.buildpipe.saveStaircase(BP.stairsCurrent).catch(() => {});
 
   BP.stairsRunning = false;
   stEl('stRunBtn').classList.remove('hidden');
