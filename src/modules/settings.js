@@ -2,7 +2,7 @@ import { stEl } from './utils.js';
 import BP from './state.js';
 
 const THEME_MODELS = {
-  openai: 'gpt-5.4-mini',
+  openai: 'gpt-4o-mini',
   anthropic: 'claude-sonnet-4-6',
 };
 

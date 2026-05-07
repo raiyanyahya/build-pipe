@@ -20,7 +20,7 @@
   </div>
   <div id="appWrap">
     <div id="stairsWrap">
-      <div class="st-sidebar" id="stSidebar">
+      <div class="st-sidebar collapsed" id="stSidebar">
         <div class="st-sidebar-header">
           <span class="st-sidebar-title">
             <button id="stHomeBtn" class="st-icon-btn" title="Dashboard" style="margin-right:4px;">
@@ -34,7 +34,11 @@
       </div>
 
       <div class="st-main">
-        <div class="st-topbar">
+        <div class="st-topbar" style="display:none;">
+          <button id="stTopHomeBtn" class="st-icon-btn st-top-home" title="Back to Dashboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="st-topbar-divider"></div>
           <input id="stName" class="st-name-input" placeholder="Untitled pipeline" />
           <div class="st-view-toggle">
             <button class="st-btn st-btn-view active" data-view="vertical" title="List view">
@@ -86,7 +90,7 @@
             <button id="stMiniFit" title="Fit to view">⊡</button>
           </div>
         </div>
-        <div class="st-add-row">
+        <div class="st-add-row" style="display:none;">
           <button id="stAddStep" class="st-add-step-btn">+ Add step</button>
           <div id="stStepTypeMenu" class="st-step-type-menu hidden">
             <button data-type="code"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code</button>
@@ -107,7 +111,7 @@
         </div>
       </div>
 
-      <div class="st-log" id="stLogPanel">
+      <div class="st-log collapsed" id="stLogPanel">
         <div class="st-log-header">
           <span>Run Log</span>
           <div class="st-log-header-actions">
