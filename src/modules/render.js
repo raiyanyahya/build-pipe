@@ -328,11 +328,10 @@ function stOpenNodeModal(step) {
       </div>
       ${BP.stairsOutputs[step.id]?.output ? `
       <div class="st-node-modal-output">
-        <div class="st-step-output-header">
-          <span class="st-step-output-label">Output</span>
-          <button class="st-step-output-copy" data-modal-copy="${step.id}">⎘ Copy</button>
+        <div class="st-step-output-wrap">
+          <button class="st-step-copy-btn" data-copy-output="${step.id}" title="Copy output">⎘ Copy</button>
+          <pre class="st-step-output">${BP.stairsOutputs[step.id].output.slice(0, 4000)}</pre>
         </div>
-        <pre class="st-step-output">${BP.stairsOutputs[step.id].output.slice(0, 4000)}</pre>
       </div>` : ''}
     </div>`;
 
@@ -367,8 +366,11 @@ function stOpenNodeModal(step) {
     stRenderCanvas();
     modal.remove();
   });
-  modal.querySelector(`[data-modal-copy="${step.id}"]`)?.addEventListener('click', () => {
-    navigator.clipboard.writeText(BP.stairsOutputs[step.id]?.output || '').catch(() => {});
+  modal.querySelector(`[data-copy-output="${step.id}"]`)?.addEventListener('click', (e) => {
+    navigator.clipboard.writeText(BP.stairsOutputs[step.id]?.output || '').then(() => {
+      e.target.textContent = '✓ Copied';
+      setTimeout(() => { e.target.textContent = '⎘ Copy'; }, 1200);
+    });
   });
 
   modal.querySelectorAll('.st-field-input,.st-field-textarea,.st-field-select').forEach(input => {

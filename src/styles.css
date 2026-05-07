@@ -1446,6 +1446,14 @@ html, body {
   white-space: pre-wrap; word-break: break-all; max-height: 140px; overflow-y: auto; opacity: 0.75;
 }
 .st-step-output.error { color: var(--error); opacity: 1; }
+.st-step-output-wrap { position: relative; }
+.st-step-copy-btn {
+  position: absolute; top: 6px; right: 6px;
+  background: var(--bg-tertiary); border: 1px solid var(--border-primary);
+  color: var(--text-secondary); border-radius: 4px; padding: 2px 7px;
+  font-size: 11px; cursor: pointer; transition: color 0.15s;
+}
+.st-step-copy-btn:hover { color: var(--text-primary); }
 
 /* Connection ports */
 .st-node-port {
