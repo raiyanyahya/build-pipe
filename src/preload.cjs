@@ -26,6 +26,21 @@ contextBridge.exposeInMainWorld('buildpipe', {
   saveLog: (staircaseId, logText) => ipcRenderer.invoke('bp:saveLog', { staircaseId, logText }),
   loadLog: (staircaseId) => ipcRenderer.invoke('bp:loadLog', staircaseId),
 
+  listTriggers: () => ipcRenderer.invoke('bp:listTriggers'),
+  setTrigger: (trigger) => ipcRenderer.invoke('bp:setTrigger', trigger),
+  removeTrigger: (pipelineId) => ipcRenderer.invoke('bp:removeTrigger', pipelineId),
+  onTriggerFired: (cb) => { ipcRenderer.on('bp:triggerFired', (_e, pipelineId) => cb(pipelineId)); },
+
+  listVars: () => ipcRenderer.invoke('bp:listVars'),
+  setVar: (key, value) => ipcRenderer.invoke('bp:setVar', key, value),
+  deleteVar: (key) => ipcRenderer.invoke('bp:deleteVar', key),
+
+  saveRun: (run) => ipcRenderer.invoke('bp:saveRun', run),
+  listRuns: (pipelineId) => ipcRenderer.invoke('bp:listRuns', pipelineId),
+  getRun: (runId) => ipcRenderer.invoke('bp:getRun', runId),
+
+  notify: (opts) => ipcRenderer.invoke('bp:notify', opts),
+
   winMinimize: () => ipcRenderer.invoke('bp:winMinimize'),
   winMaximize: () => ipcRenderer.invoke('bp:winMaximize'),
   winClose: () => ipcRenderer.invoke('bp:winClose'),

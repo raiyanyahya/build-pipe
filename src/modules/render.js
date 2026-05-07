@@ -215,12 +215,15 @@ function stBuildNode(step, index) {
   el.style.left = `${step._x || 0}px`;
   el.style.top = `${step._y || 0}px`;
 
-  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE' }[step.type] || step.type.toUpperCase();
+  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE', if: 'IF', loop: 'LOOP', notify: 'NOTIFY' }[step.type] || step.type.toUpperCase();
   const iconSvg = {
-    code: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    ai: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-    http: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
-    file: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    code:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+    ai:     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    http:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+    file:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    if:     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>',
+    loop:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+    notify: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
   };
 
   el.innerHTML = `
@@ -291,12 +294,15 @@ function stOpenNodeModal(step) {
   const existing = document.querySelector('.st-node-modal');
   if (existing) existing.remove();
 
-  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE' }[step.type] || '';
+  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE', if: 'IF', loop: 'LOOP', notify: 'NOTIFY' }[step.type] || '';
   const iconMap = {
-    code: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    ai: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-    http: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
-    file: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>',
+    code:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+    ai:     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    http:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
+    file:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>',
+    if:     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>',
+    loop:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+    notify: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
   };
 
   const modal = document.createElement('div');
@@ -469,8 +475,8 @@ export function stBuildVerticalCard(step, index) {
   el.dataset.index = String(index);
   el.draggable = true;
 
-  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE' }[step.type] || step.type.toUpperCase();
-  const typeCls = { code: 'st-type-code', ai: 'st-type-ai', http: 'st-type-http', file: 'st-type-file' }[step.type] || '';
+  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE', if: 'IF', loop: 'LOOP', notify: 'NOTIFY' }[step.type] || step.type.toUpperCase();
+  const typeCls = { code: 'st-type-code', ai: 'st-type-ai', http: 'st-type-http', file: 'st-type-file', if: 'st-type-if', loop: 'st-type-loop', notify: 'st-type-notify' }[step.type] || '';
 
   el.innerHTML = `
     <div class="st-step-header">
@@ -541,16 +547,42 @@ export function stBuildVerticalCard(step, index) {
 
 function stBuildConfigFields(step) {
   const c = step.config || {};
-  const tip = '<span style="font-size:10px;opacity:0.4;display:block;margin-top:3px;">Use <code style="background:rgba(128,128,128,0.15);padding:1px 4px;border-radius:3px;">{{step_id.output}}</code> to reference previous steps</span>';
+  const tip = '<span class="st-field-tip">Use <code>{{step_id.output}}</code> to chain steps · <code>{{vars.KEY}}</code> for variables</span>';
+
+  const errorSection = `
+    <details class="st-err-section">
+      <summary>Error handling</summary>
+      <div class="st-field-row" style="margin-top:6px;">
+        <div>
+          <div class="st-field-label">Retry on error</div>
+          <select class="st-field-select" data-key="retry">
+            <option value="0"${!c.retry ? ' selected' : ''}>None</option>
+            <option value="1"${c.retry == 1 ? ' selected' : ''}>1×</option>
+            <option value="2"${c.retry == 2 ? ' selected' : ''}>2×</option>
+            <option value="3"${c.retry == 3 ? ' selected' : ''}>3×</option>
+          </select>
+        </div>
+        <div>
+          <div class="st-field-label">On failure</div>
+          <select class="st-field-select" data-key="continueOnError">
+            <option value=""${!c.continueOnError ? ' selected' : ''}>Stop pipeline</option>
+            <option value="1"${c.continueOnError === '1' ? ' selected' : ''}>Continue</option>
+          </select>
+        </div>
+      </div>
+    </details>`;
+
   switch (step.type) {
     case 'code':
       return `<div class="st-field-label">Shell command</div>
-              <textarea class="st-field-textarea" data-key="command" placeholder="curl https://api.github.com/events | head -20">${c.command || ''}</textarea>${tip}`;
+              <textarea class="st-field-textarea" data-key="command" placeholder="curl https://api.github.com/events | head -20">${c.command || ''}</textarea>${tip}${errorSection}`;
+
     case 'ai':
       return `<div class="st-field-label">Prompt</div>
               <textarea class="st-field-textarea" data-key="prompt" placeholder="Summarise this: {{prev_step.output}}" style="min-height:96px">${c.prompt || ''}</textarea>${tip}
               <div class="st-field-label" style="margin-top:6px">System prompt (optional)</div>
-              <textarea class="st-field-textarea" data-key="system" placeholder="You are a helpful assistant" style="min-height:48px">${c.system || ''}</textarea>`;
+              <textarea class="st-field-textarea" data-key="system" placeholder="You are a helpful assistant" style="min-height:48px">${c.system || ''}</textarea>${errorSection}`;
+
     case 'http':
       return `<div class="st-field-row">
                 <div><div class="st-field-label">Method</div>
@@ -561,7 +593,8 @@ function stBuildConfigFields(step) {
                 <input class="st-field-input" data-key="url" value="${c.url || ''}" placeholder="https://api.example.com/data" /></div>
               </div>
               <div class="st-field-label" style="margin-top:6px">Body JSON (optional)</div>
-              <textarea class="st-field-textarea" data-key="body" placeholder='{"key":"value"}' style="min-height:56px">${c.body || ''}</textarea>`;
+              <textarea class="st-field-textarea" data-key="body" placeholder='{"key":"value"}' style="min-height:56px">${c.body || ''}</textarea>${tip}${errorSection}`;
+
     case 'file':
       return `<div class="st-field-row">
                 <div><div class="st-field-label">Operation</div>
@@ -574,7 +607,72 @@ function stBuildConfigFields(step) {
                 <input class="st-field-input" data-key="path" value="${c.path || ''}" placeholder="~/.buildpipe/output.md" /></div>
               </div>
               <div class="st-field-label" style="margin-top:6px">Content (write/append only)</div>
-              <textarea class="st-field-textarea" data-key="content" placeholder="{{prev_step.output}}">${c.content || ''}</textarea>${tip}`;
+              <textarea class="st-field-textarea" data-key="content" placeholder="{{prev_step.output}}">${c.content || ''}</textarea>${tip}${errorSection}`;
+
+    case 'if':
+      return `<div class="st-field-label">Value to check</div>
+              <input class="st-field-input" data-key="value" value="${c.value || ''}" placeholder="{{prev_step.output}}" />${tip}
+              <div class="st-field-row" style="margin-top:6px;">
+                <div>
+                  <div class="st-field-label">Operator</div>
+                  <select class="st-field-select" data-key="operator">
+                    <option value="contains"${(c.operator||'contains')==='contains'?' selected':''}>contains</option>
+                    <option value="not-contains"${c.operator==='not-contains'?' selected':''}>does not contain</option>
+                    <option value="equals"${c.operator==='equals'?' selected':''}>equals</option>
+                    <option value="not-equals"${c.operator==='not-equals'?' selected':''}>not equals</option>
+                    <option value="not-empty"${c.operator==='not-empty'?' selected':''}>is not empty</option>
+                    <option value="empty"${c.operator==='empty'?' selected':''}>is empty</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="st-field-label">Compare to</div>
+                  <input class="st-field-input" data-key="against" value="${c.against || ''}" placeholder="error" />
+                </div>
+              </div>
+              <div class="st-field-label" style="margin-top:6px;">If false</div>
+              <select class="st-field-select" data-key="on_false">
+                <option value="stop"${(c.on_false||'stop')==='stop'?' selected':''}>Stop pipeline</option>
+                <option value="continue"${c.on_false==='continue'?' selected':''}>Continue anyway</option>
+              </select>`;
+
+    case 'loop':
+      return `<div class="st-field-label">Items (JSON array or newline-separated)</div>
+              <input class="st-field-input" data-key="items" value="${c.items || ''}" placeholder="{{prev_step.output}}" />${tip}
+              <div class="st-field-row" style="margin-top:6px;">
+                <div>
+                  <div class="st-field-label">Step type</div>
+                  <select class="st-field-select" data-key="step_type">
+                    <option value="code"${(c.step_type||'code')==='code'?' selected':''}>Code</option>
+                    <option value="ai"${c.step_type==='ai'?' selected':''}>AI</option>
+                    <option value="http"${c.step_type==='http'?' selected':''}>HTTP</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="st-field-label">Max items</div>
+                  <input class="st-field-input" data-key="max_items" type="number" value="${c.max_items || 10}" style="width:80px;" />
+                </div>
+              </div>
+              <div class="st-field-label" style="margin-top:6px;">Command / Prompt / URL <span style="opacity:.4;font-size:10px;">(use {{_item.output}} for current item)</span></div>
+              <textarea class="st-field-textarea" data-key="command" placeholder="echo '{{_item.output}}'">${c.command || c.prompt || c.url || ''}</textarea>
+              <div class="st-field-label" style="margin-top:6px;">On item error</div>
+              <select class="st-field-select" data-key="continue_on_error">
+                <option value=""${!c.continue_on_error?' selected':''}>Stop loop</option>
+                <option value="1"${c.continue_on_error==='1'?' selected':''}>Continue</option>
+              </select>`;
+
+    case 'notify':
+      return `<div class="st-field-label">Title</div>
+              <input class="st-field-input" data-key="title" value="${c.title || ''}" placeholder="Pipeline completed" />
+              <div class="st-field-label" style="margin-top:6px;">Message</div>
+              <textarea class="st-field-textarea" data-key="message" placeholder="{{prev_step.output}}">${c.message || ''}</textarea>${tip}
+              <div class="st-field-label" style="margin-top:6px;">Channel</div>
+              <select class="st-field-select" data-key="channel">
+                <option value="system"${(c.channel||'system')==='system'?' selected':''}>System notification</option>
+                <option value="webhook"${c.channel==='webhook'?' selected':''}>Webhook (POST)</option>
+              </select>
+              ${c.channel === 'webhook' ? `<div class="st-field-label" style="margin-top:6px;">Webhook URL</div>
+              <input class="st-field-input" data-key="webhook_url" value="${c.webhook_url || ''}" placeholder="https://hooks.slack.com/..." />` : ''}`;
+
     default:
       return '';
   }
@@ -618,10 +716,13 @@ export function stAddStep(type) {
   }
   BP.pushUndo();
   const defaults = {
-    code: { command: '' },
-    ai: { prompt: '', system: '' },
-    http: { url: '', method: 'GET', body: '' },
-    file: { operation: 'read', path: '', content: '' },
+    code:   { command: '' },
+    ai:     { prompt: '', system: '' },
+    http:   { url: '', method: 'GET', body: '' },
+    file:   { operation: 'read', path: '', content: '' },
+    if:     { value: '', operator: 'contains', against: '', on_false: 'stop' },
+    loop:   { items: '', step_type: 'code', command: '', max_items: 10, continue_on_error: '' },
+    notify: { title: 'Pipeline completed', message: '', channel: 'system' },
   };
   BP.stairsCurrent.steps.push({
     id: stUid(), type, label: `${type.charAt(0).toUpperCase() + type.slice(1)} step`,
