@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, safeStorage, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, Notification, dialog } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -108,7 +108,7 @@ async function loadEncryptedKeys() {
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1400,
+    width: 1150,
     height: 900,
     minWidth: 900,
     minHeight: 600,
@@ -361,14 +361,53 @@ ipcMain.handle('bp:deleteStaircase', async (_e, id) => {
   }
 });
 
+ipcMain.handle('bp:exportPipeline', async (_e, pipeline) => {
+  const { filePath, canceled } = await dialog.showSaveDialog({
+    title: 'Export Pipeline',
+    defaultPath: `${pipeline.name || 'pipeline'}.json`,
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+  });
+  if (canceled || !filePath) return { ok: false };
+  await fs.promises.writeFile(filePath, JSON.stringify(pipeline, null, 2), 'utf8');
+  return { ok: true };
+});
+
+ipcMain.handle('bp:importPipeline', async () => {
+  const { filePaths, canceled } = await dialog.showOpenDialog({
+    title: 'Import Pipeline',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile'],
+  });
+  if (canceled || !filePaths.length) return { ok: false };
+  const raw = await fs.promises.readFile(filePaths[0], 'utf8');
+  let pipeline;
+  try { pipeline = JSON.parse(raw); } catch { return { ok: false, error: 'Invalid JSON' }; }
+  if (!pipeline.name || !Array.isArray(pipeline.steps)) return { ok: false, error: 'Not a valid pipeline file' };
+  pipeline.id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  pipeline.created = new Date().toISOString();
+  delete pipeline.lastRun;
+  pipeline.runCount = 0;
+  pipeline.successRuns = 0;
+  const dest = path.join(stairsDir(), `${pipeline.id}.json`);
+  await fs.promises.mkdir(stairsDir(), { recursive: true });
+  await fs.promises.writeFile(dest, JSON.stringify(pipeline, null, 2), 'utf8');
+  return { ok: true, pipeline };
+});
+
 // ── Step execution ───────────────────────────────────────────────────────────
 ipcMain.handle('bp:runCode', async (_e, command) => {
-  return new Promise(resolve => {
-    exec(command, { timeout: 30000, shell: '/bin/bash' }, (err, stdout, stderr) => {
-      if (err) resolve({ ok: false, output: (stderr || err.message).trim() });
-      else resolve({ ok: true, output: stdout.trim() });
+  const tmpFile = path.join(os.tmpdir(), `bp_step_${Date.now()}.sh`);
+  try {
+    await fs.promises.writeFile(tmpFile, command, 'utf8');
+    return await new Promise(resolve => {
+      exec(`bash ${tmpFile}`, { timeout: 30000 }, (err, stdout, stderr) => {
+        if (err) resolve({ ok: false, output: (stderr || err.message).trim() });
+        else resolve({ ok: true, output: stdout.trim() });
+      });
     });
-  });
+  } finally {
+    fs.promises.unlink(tmpFile).catch(() => {});
+  }
 });
 
 ipcMain.handle('bp:runHttp', async (_e, { url, method = 'GET', headers = {}, body }) => {

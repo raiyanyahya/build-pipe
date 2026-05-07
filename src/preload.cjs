@@ -41,6 +41,9 @@ contextBridge.exposeInMainWorld('buildpipe', {
 
   notify: (opts) => ipcRenderer.invoke('bp:notify', opts),
 
+  exportPipeline: (pipeline) => ipcRenderer.invoke('bp:exportPipeline', pipeline),
+  importPipeline: () => ipcRenderer.invoke('bp:importPipeline'),
+
   winMinimize: () => ipcRenderer.invoke('bp:winMinimize'),
   winMaximize: () => ipcRenderer.invoke('bp:winMaximize'),
   winClose: () => ipcRenderer.invoke('bp:winClose'),
