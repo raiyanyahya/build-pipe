@@ -115,6 +115,12 @@ export async function stRunFrom(startIndex) {
   BP.stairsCurrent.runCount = (BP.stairsCurrent.runCount || 0) + 1;
   if (lastRes?.ok) BP.stairsCurrent.successRuns = (BP.stairsCurrent.successRuns || 0) + 1;
   BP.stairsCurrent.lastOk = lastRes?.ok !== false;
+  BP.stairsCurrent.lastDuration = runRecord.steps.length
+    ? (() => {
+        const total = runRecord.steps.reduce((s, step) => s + (step.duration || 0), 0);
+        return total < 1 ? `${Math.round(total * 1000)}ms` : `${total.toFixed(1)}s`;
+      })()
+    : null;
   await window.buildpipe.saveStaircase(BP.stairsCurrent);
 
   BP.stairsRunning = false;

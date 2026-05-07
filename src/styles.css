@@ -1544,7 +1544,6 @@ html, body {
 .st-canvas-nodes.vertical-list .st-step.st-running .st-step-indicator { background: var(--warning); animation: stBlink 1s ease infinite; }
 .st-canvas-nodes.vertical-list .st-step.st-done    .st-step-indicator { background: var(--success); }
 .st-canvas-nodes.vertical-list .st-step.st-error   .st-step-indicator { background: var(--error); }
-@keyframes stBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 .st-canvas-nodes.vertical-list .st-step-type-badge {
   font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
