@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>buildpipe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="titlebar">
+    <span class="titlebar-logo no-drag">
+      <img src="../icon.png" width="18" height="18" class="titlebar-icon" alt="buildpipe" />
+    </span>
+    <div class="titlebar-drag"></div>
+    <div class="titlebar-controls no-drag">
+      <button id="winMinimize" class="win-ctrl win-ctrl-min" title="Minimize"><svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.2"/></svg></button>
+      <button id="winMaximize" class="win-ctrl win-ctrl-max" title="Maximize"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></button>
+      <button id="winClose" class="win-ctrl win-ctrl-close" title="Close"><svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.2"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+  <div id="appWrap">
+    <div id="stairsWrap">
+      <div class="st-sidebar" id="stSidebar">
+        <div class="st-sidebar-header">
+          <span class="st-sidebar-title">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Pipelines
+          </span>
+          <button id="stNewBtn" class="st-icon-btn" title="New pipeline">+</button>
+        </div>
+        <div id="stProjectList" class="st-project-list"></div>
+      </div>
+
+      <div class="st-main">
+        <div class="st-topbar">
+          <input id="stName" class="st-name-input" placeholder="Untitled pipeline" />
+          <div class="st-view-toggle">
+            <button class="st-btn st-btn-view active" data-view="vertical" title="List view">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+            <button class="st-btn st-btn-view" data-view="horizontal" title="Flow view">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="6" height="10" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/><rect x="16" y="7" width="6" height="10" rx="1"/></svg>
+            </button>
+          </div>
+          <div class="st-topbar-right">
+            <span id="stDraftBadge" class="st-badge st-badge-draft">Draft</span>
+            <span id="stPublishedBadge" class="st-badge st-badge-published hidden">Published</span>
+            <button id="stUndoBtn" class="st-btn st-btn-undo hidden" title="Undo (Ctrl+Z)">↩ Undo</button>
+            <button id="stRedoBtn" class="st-btn st-btn-redo hidden" title="Redo (Ctrl+Shift+Z)">↪ Redo</button>
+            <button id="stAiBuildBtn" class="st-btn st-btn-ai">✦ Build</button>
+            <button id="stRunBtn" class="st-btn st-btn-run">▶ Run</button>
+            <button id="stStopBtn" class="st-btn st-btn-stop hidden">■ Stop</button>
+            <button id="stPublishBtn" class="st-btn st-btn-publish">Publish</button>
+            <button id="stDeleteStaircaseBtn" class="st-btn st-btn-del" title="Delete pipeline">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="stAiBuildBar" class="st-ai-build-bar hidden">
+          <input id="stAiDescInput" class="st-ai-desc-input" placeholder="Describe what this pipeline should do… e.g. 'Check HN top stories, summarise with AI, save to file'" />
+          <button id="stAiGenBtn" class="st-btn st-btn-ai">Generate ↵</button>
+          <button id="stAiBuildClose" class="st-btn">✕</button>
+        </div>
+
+        <div class="st-canvas-wrap">
+          <div id="stCanvas" class="st-canvas">
+            <svg id="stCanvasSvg" class="st-canvas-svg"></svg>
+            <div id="stCanvasNodes" class="st-canvas-nodes"></div>
+            <div id="stEmpty" class="st-empty" style="display:none;">
+              <svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.25">
+                <polyline points="6,38 6,28 16,28 16,18 26,18 26,10 36,10 36,6"/>
+                <polyline points="36,6 42,6 42,42 6,42"/>
+              </svg>
+              <p>No steps yet</p>
+              <p class="st-empty-sub">Use <strong>✦ Build</strong> to generate from a description, or <strong>+ Add step</strong></p>
+            </div>
+          </div>
+          <div id="stMiniToolbar" class="st-mini-toolbar" style="display:none;">
+            <button id="stMiniAdd" title="Add step">+</button>
+            <button id="stMiniZoomIn" title="Zoom in">⊕</button>
+            <button id="stMiniZoomOut" title="Zoom out">⊖</button>
+            <button id="stMiniFit" title="Fit to view">⊡</button>
+          </div>
+        </div>
+        <div class="st-add-row">
+          <button id="stAddStep" class="st-add-step-btn">+ Add step</button>
+          <div id="stStepTypeMenu" class="st-step-type-menu hidden">
+            <button data-type="code"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code</button>
+            <button data-type="ai">✦ AI</button>
+            <button data-type="http">↗ HTTP</button>
+            <button data-type="file"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg> File</button>
+          </div>
+          <div class="st-spacer"></div>
+          <button id="stSidebarEdgeToggle" class="st-bar-btn collapsed" title="Toggle sidebar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+          </button>
+          <button id="stSettingsBtn" class="st-bar-btn" title="Settings">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <button id="stLogEdgeToggle" class="st-bar-btn collapsed" title="Toggle log">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="st-log" id="stLogPanel">
+        <div class="st-log-header">
+          <span>Run Log</span>
+          <div class="st-log-header-actions">
+            <button id="stSaveLogBtn" class="st-icon-btn" title="Save log to file">💾</button>
+            <button id="stClearLog" class="st-icon-btn" title="Clear">✕</button>
+          </div>
+        </div>
+        <div id="stLogBody" class="st-log-body">
+          <div class="st-log-empty">Run a pipeline to see output here</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="stSettingsPanel" class="st-settings-panel hidden">
+      <div id="stSettingsOverlay" class="st-settings-overlay"></div>
+      <div class="st-settings-dialog">
+        <div class="st-settings-header">
+          <h2>Settings</h2>
+          <button id="stSettingsClose" class="st-icon-btn">✕</button>
+        </div>
+        <div class="st-settings-body">
+          <div class="st-field-label">AI Provider</div>
+          <select id="stAiProvider" class="st-field-select">
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic</option>
+          </select>
+          <div class="st-field-label" style="margin-top:12px">Default Model</div>
+          <input id="stDefaultModel" class="st-field-input" placeholder="gpt-4o-mini" />
+          <div class="st-field-label" style="margin-top:12px">API Key</div>
+          <div class="st-settings-key-row">
+            <input id="stApiKey" class="st-field-input" type="password" placeholder="sk-..." />
+            <button id="stApiKeyToggle" class="st-btn" title="Show/hide">👁</button>
+          </div>
+          <button id="stApiKeySave" class="st-btn st-btn-run" style="margin-top:16px;width:100%;">Save Settings</button>
+          <div id="stSettingsStatus" class="st-settings-status hidden"></div>
+          <div class="st-settings-section">
+            <div class="st-settings-section-title">Color Theme</div>
+            <div class="st-theme-presets">
+              <button id="stTheme-dark" class="st-theme-preset p-dark active" title="Dark"></button>
+              <button id="stTheme-ocean" class="st-theme-preset p-ocean" title="Ocean"></button>
+              <button id="stTheme-forest" class="st-theme-preset p-forest" title="Forest"></button>
+              <button id="stTheme-sunset" class="st-theme-preset p-sunset" title="Sunset"></button>
+              <button id="stTheme-midnight" class="st-theme-preset p-midnight" title="Midnight"></button>
+              <button id="stTheme-light" class="st-theme-preset p-light" title="Light"></button>
+              <button id="stTheme-cream" class="st-theme-preset p-cream" title="Cream"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="modules/state.js"></script>
+  <script type="module" src="modules/utils.js"></script>
+  <script type="module" src="modules/log.js"></script>
+  <script type="module" src="modules/render.js"></script>
+  <script type="module" src="modules/dragdrop.js"></script>
+  <script type="module" src="modules/canvas.js"></script>
+  <script type="module" src="modules/steps.js"></script>
+  <script type="module" src="modules/run.js"></script>
+  <script type="module" src="modules/ai-build.js"></script>
+  <script type="module" src="modules/events.js"></script>
+  <script type="module" src="modules/settings.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
