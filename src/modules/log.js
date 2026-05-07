@@ -65,4 +65,15 @@ export async function stLoadLog() {
 export function stInitLog() {
   stEl('stClearLog')?.addEventListener('click', stClearLog);
   stEl('stSaveLogBtn')?.addEventListener('click', stSaveLog);
+  stEl('stCopyLogBtn')?.addEventListener('click', () => {
+    const text = stGetLogText();
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = stEl('stCopyLogBtn');
+      if (!btn) return;
+      const orig = btn.textContent;
+      btn.textContent = '✓';
+      setTimeout(() => { btn.textContent = orig; }, 1200);
+    });
+  });
 }
