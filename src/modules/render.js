@@ -75,10 +75,6 @@ export async function stLoadAll() {
     el.addEventListener('click', () => stOpen(sc));
     list.appendChild(el);
   }
-  if (all.length === 1 && !BP.stairsCurrent) {
-    // Don't auto-open — dashboard is the default view
-  }
-
   BP.updateUndoButtons();
 }
 
@@ -97,7 +93,6 @@ export function stOpen(sc) {
     stRenderCanvas();
     stLoadLog();
     BP.pushUndo();
-    BP.updateUndoButtons();
   } catch (e) {
     stLog(`Error opening pipeline: ${e.message}`, 'log-error');
   }
@@ -469,7 +464,7 @@ function initMiniToolbar() {
   }
 }
 
-export function stBuildVerticalCard(step, index) {
+function stBuildVerticalCard(step, index) {
   const el = document.createElement('div');
   el.className = 'st-step';
   el.dataset.id = step.id;
@@ -702,11 +697,6 @@ export function stApplyStepOutput(stepId, res) {
     outEl.textContent = res.output?.slice(0, 4000) || '(no output)';
     outEl.className = `st-step-output${res.ok ? '' : ' error'}`;
   }
-  const durEl = card.querySelector(`[data-dur="${stepId}"]`);
-  if (durEl) {
-    const idx = BP.stairsCurrent?.steps.findIndex(s => s.id === stepId);
-    // duration is set by run.js
-  }
 }
 
 export function stAddStep(type) {
@@ -748,5 +738,3 @@ export function stDuplicateStep(stepId) {
   stSaveImmediate();
   stRenderCanvas();
 }
-
-
