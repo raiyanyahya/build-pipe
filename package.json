@@ -53,6 +53,6 @@
     "electron-builder": "^26.8.1"
   },
   "dependencies": {
-    "openai": "^6.35.0"
+    "openai": "^6.37.0"
   }
 }
