@@ -74,8 +74,6 @@ export function destroyCanvas() {
 }
 
 export function zoomIn() {
-  transform.x = 200;
-  transform.y = 80;
   transform.scale = Math.min(2.2, transform.scale * 1.15);
   applyTransform();
 }
