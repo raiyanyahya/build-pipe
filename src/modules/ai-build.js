@@ -1,9 +1,7 @@
 import { stEl, stUid } from './utils.js';
 import BP from './state.js';
 import { stLog } from './log.js';
-import { stSave } from './render.js';
-import { stLoadAll } from './render.js';
-import { stRenderCanvas } from './render.js';
+import { stLoadAll, stRenderCanvas } from './render.js';
 
 export async function stAiBuild(description) {
   if (!description.trim()) return;
