@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/version-1.0.0-f59e0b?style=flat-square" />
   <img src="https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square&logo=node.js" />
+  <a href="https://github.com/raiyanyahya/buildpipe/actions/workflows/ci.yml"><img src="https://github.com/raiyanyahya/buildpipe/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 </p>
 
 ---
