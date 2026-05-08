@@ -1,8 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('buildpipe', {
-  getConfigDir: () => ipcRenderer.invoke('bp:getConfigDir'),
-
   setApiKey: (key, provider) => ipcRenderer.invoke('bp:setApiKey', key, provider || 'openai'),
   hasKey: (provider) => ipcRenderer.invoke('bp:hasKey', provider),
   clearKey: (provider) => ipcRenderer.invoke('bp:clearKey', provider),

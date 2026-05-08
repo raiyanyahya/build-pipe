@@ -41,7 +41,7 @@ export function stSave() {
   saveTimer = setTimeout(() => doSave(), SAVE_DEBOUNCE);
 }
 
-function stSaveImmediate() {
+export function stSaveImmediate() {
   if (saveTimer) clearTimeout(saveTimer);
   doSave();
 }

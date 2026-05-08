@@ -69,6 +69,7 @@ export function destroyCanvas() {
   }
   container = null;
   isPanning = false;
+  transform = { x: 0, y: 80, scale: 0.85 };
 }
 
 export function zoomIn() {

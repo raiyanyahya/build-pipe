@@ -3,7 +3,7 @@ import BP from './state.js';
 
 export async function stShowTriggersModal() {
   const existing = document.querySelector('.bp-triggers-modal');
-  if (existing) { existing.remove(); return; }
+  if (existing) { existing.classList.remove('visible'); setTimeout(() => existing.remove(), 200); return; }
 
   const pipelineId   = BP.stairsCurrent?.id;
   const pipelineName = BP.stairsCurrent?.name || 'this pipeline';

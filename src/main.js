@@ -10,6 +10,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let OPENAI_API_KEY = process.env.OPENAI_API_KEY || null;
 let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || null;
+// Clear from env immediately so spawned child processes don't inherit them
+delete process.env.OPENAI_API_KEY;
+delete process.env.ANTHROPIC_API_KEY;
 let KEY_FILE = null;
 let ANTHROPIC_KEY_FILE = null;
 
@@ -81,9 +84,15 @@ async function loadAndActivateTriggers() {
 function stairsSafePath(filePath) {
   const home = os.homedir();
   const resolved = path.resolve(String(filePath).replace(/^~/, home));
-  if (resolved !== home && !resolved.startsWith(home + path.sep))
+  if (!resolved.startsWith(home + path.sep))
     throw new Error('Path must be within home directory');
   return resolved;
+}
+
+function safeId(id) {
+  if (typeof id !== 'string' || !/^[a-z0-9_-]{1,80}$/i.test(id))
+    throw new Error('Invalid ID');
+  return id;
 }
 
 async function loadEncryptedKeys() {
@@ -161,8 +170,6 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-
-ipcMain.handle('bp:getConfigDir', () => configDir());
 
 // ── API Keys ─────────────────────────────────────────────────────────────────
 ipcMain.handle('bp:setApiKey', async (_e, key, provider = 'openai') => {
@@ -273,14 +280,11 @@ ipcMain.handle('bp:aiRequest', async (_e, payload) => {
 
   try {
     const baseURL = isAnthropic ? 'https://api.anthropic.com/v1' : 'https://api.openai.com/v1';
-    const headers = {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    };
+    const headers = isAnthropic
+      ? { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
+      : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
 
     if (isAnthropic) {
-      headers['anthropic-version'] = '2023-06-01';
       const body = JSON.stringify({
         model,
         system,
@@ -343,17 +347,21 @@ ipcMain.handle('bp:listStaircases', async () => {
 });
 
 ipcMain.handle('bp:saveStaircase', async (_e, staircase) => {
-  await fs.promises.mkdir(stairsDir(), { recursive: true });
-  await fs.promises.writeFile(
-    path.join(stairsDir(), `${staircase.id}.json`),
-    JSON.stringify(staircase, null, 2),
-    'utf8'
-  );
-  return { ok: true };
+  try {
+    safeId(staircase.id);
+    await fs.promises.mkdir(stairsDir(), { recursive: true });
+    await fs.promises.writeFile(
+      path.join(stairsDir(), `${staircase.id}.json`),
+      JSON.stringify(staircase, null, 2),
+      'utf8'
+    );
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e.message }; }
 });
 
 ipcMain.handle('bp:deleteStaircase', async (_e, id) => {
   try {
+    safeId(id);
     await fs.promises.unlink(path.join(stairsDir(), `${id}.json`));
     return { ok: true };
   } catch (e) {
@@ -416,8 +424,10 @@ ipcMain.handle('bp:runHttp', async (_e, { url, method = 'GET', headers = {}, bod
     try { parsed = new URL(url); } catch { return { ok: false, output: 'Invalid URL' }; }
     if (!['http:', 'https:'].includes(parsed.protocol)) return { ok: false, output: 'Only http/https URLs are allowed' };
     const h = parsed.hostname.toLowerCase();
-    if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.local') ||
-        /^10\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h))
+    if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '0.0.0.0' ||
+        h.endsWith('.local') ||
+        /^10\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
+        /^169\.254\./.test(h) || /^fc00:/i.test(h) || /^fd[0-9a-f]{2}:/i.test(h))
       return { ok: false, output: 'Requests to private/localhost addresses are not allowed' };
     const opts = { method, headers: { 'Content-Type': 'application/json', ...headers } };
     if (body) opts.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -445,6 +455,7 @@ ipcMain.handle('bp:fileWrite', async (_e, { path: filePath, content }) => {
 // ── Log persistence ──────────────────────────────────────────────────────────
 ipcMain.handle('bp:saveLog', async (_e, { staircaseId, logText }) => {
   try {
+    safeId(staircaseId);
     await fs.promises.mkdir(logDir(), { recursive: true });
     const logFile = path.join(logDir(), `${staircaseId}.log`);
     await fs.promises.writeFile(logFile, logText, 'utf8');
@@ -454,6 +465,7 @@ ipcMain.handle('bp:saveLog', async (_e, { staircaseId, logText }) => {
 
 ipcMain.handle('bp:loadLog', async (_e, staircaseId) => {
   try {
+    safeId(staircaseId);
     const logFile = path.join(logDir(), `${staircaseId}.log`);
     return { ok: true, content: await fs.promises.readFile(logFile, 'utf8') };
   } catch { return { ok: false, content: '' }; }
@@ -506,6 +518,7 @@ ipcMain.handle('bp:deleteVar', async (_e, key) => {
 // ── Run history ───────────────────────────────────────────────────────────────
 ipcMain.handle('bp:saveRun', async (_e, run) => {
   try {
+    safeId(run.id);
     await fs.promises.mkdir(runsDir(), { recursive: true });
     await fs.promises.writeFile(path.join(runsDir(), `${run.id}.json`), JSON.stringify(run, null, 2), 'utf8');
     return { ok: true };
@@ -528,8 +541,10 @@ ipcMain.handle('bp:listRuns', async (_e, pipelineId) => {
 });
 
 ipcMain.handle('bp:getRun', async (_e, runId) => {
-  try { return JSON.parse(await fs.promises.readFile(path.join(runsDir(), `${runId}.json`), 'utf8')); }
-  catch { return null; }
+  try {
+    safeId(runId);
+    return JSON.parse(await fs.promises.readFile(path.join(runsDir(), `${runId}.json`), 'utf8'));
+  } catch { return null; }
 });
 
 // ── Notifications ─────────────────────────────────────────────────────────────

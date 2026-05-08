@@ -608,11 +608,20 @@ export function stShowTemplatesModal() {
 }
 
 async function cloneTemplate(tmpl) {
-  const steps = tmpl.steps.map(s => ({
-    ...s,
-    id: s.id || stUid(),
-    config: { ...s.config },
-  }));
+  // Build old→new ID map so intra-template {{id.output}} references stay valid
+  const idMap = {};
+  tmpl.steps.forEach(s => { if (s.id) idMap[s.id] = stUid(); });
+
+  const steps = tmpl.steps.map(s => {
+    const newId = idMap[s.id] || stUid();
+    const config = {};
+    for (const [k, v] of Object.entries(s.config || {})) {
+      config[k] = typeof v === 'string'
+        ? v.replace(/\{\{([^.}]+)\.output\}\}/g, (m, old) => idMap[old] ? `{{${idMap[old]}.output}}` : m)
+        : v;
+    }
+    return { ...s, id: newId, config };
+  });
 
   BP.stairsCurrent = {
     id: stUid(), name: tmpl.name, steps,

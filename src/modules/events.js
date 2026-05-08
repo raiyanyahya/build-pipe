@@ -1,7 +1,7 @@
 import { stEl, stUid } from './utils.js';
 import BP from './state.js';
 import { stLog } from './log.js';
-import { stSave, stLoadAll, stRenderCanvas, stAddStep, stOpen } from './render.js';
+import { stSave, stSaveImmediate, stLoadAll, stRenderCanvas, stAddStep, stOpen } from './render.js';
 import { stRun } from './run.js';
 import { stAiBuild } from './ai-build.js';
 import { stRenderDashboard } from './dashboard.js';
@@ -40,7 +40,7 @@ export function initEvents() {
     if (!BP.stairsCurrent) return;
     const isPublished = BP.stairsCurrent.status === 'published';
     BP.stairsCurrent.status = isPublished ? 'draft' : 'published';
-    await stSave();
+    stSaveImmediate();
     stEl('stDraftBadge').classList.toggle('hidden', !isPublished);
     stEl('stPublishedBadge').classList.toggle('hidden', isPublished);
     stEl('stPublishBtn').textContent = isPublished ? 'Publish' : 'Unpublish';

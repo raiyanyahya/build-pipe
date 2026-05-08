@@ -274,11 +274,9 @@ export async function stRenderDashboard() {
       e.stopPropagation();
       const sc = all.find(s => s.id === btn.dataset.cardRun);
       if (!sc) return;
-      openPipeline(sc);
-      setTimeout(async () => {
-        const { stRun } = await import('./run.js');
-        stRun();
-      }, 300);
+      await openPipeline(sc);
+      const { stRun } = await import('./run.js');
+      stRun();
     });
   });
 
