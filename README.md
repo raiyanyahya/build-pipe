@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" width="80" alt="buildpipe logo" />
+  <img src="assets/icon.png" width="80" alt="buildpipe logo" />
 </p>
 
 <h1 align="center">buildpipe</h1>

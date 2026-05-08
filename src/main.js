@@ -122,7 +122,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'buildpipe',
-    icon: path.join(__dirname, '..', 'icon.png'),
+    icon: path.join(__dirname, '..', 'assets', 'icon-256.png'),
     frame: false,
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#1a1a2e',

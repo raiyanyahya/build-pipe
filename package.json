@@ -1,6 +1,8 @@
 {
   "name": "buildpipe",
   "version": "1.0.0",
+  "description": "A local-first pipeline automation app for developers, powered by AI",
+  "author": "raiyanyahya",
   "private": true,
   "type": "module",
   "main": "src/main.js",
@@ -14,14 +16,14 @@
   "build": {
     "appId": "com.buildpipe.app",
     "productName": "buildpipe",
-    "icon": "icons/icon.png",
     "asar": true,
     "files": [
       "src/**/*",
-      "icons/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "mac": {
+      "icon": "assets/icon-512.png",
       "category": "public.app-category.developertools",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -36,6 +38,7 @@
       ]
     },
     "linux": {
+      "icon": "assets/icon-256.png",
       "category": "Development",
       "executableArgs": [
         "--no-sandbox"
