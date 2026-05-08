@@ -523,7 +523,9 @@
 html, body {
   height: 100%; overflow: hidden;
   font-family: var(--font-sans);
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(circle, var(--dot-default) 1px, transparent 1px);
+  background-size: 22px 22px;
   color: var(--text-primary);
 }
 
@@ -580,7 +582,7 @@ html, body {
 #appWrap {
   display: flex;
   height: calc(100% - var(--titlebar-h));
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -592,7 +594,7 @@ html, body {
   display: flex;
   flex: 1; min-height: 0;
   flex-direction: row;
-  background: var(--bg-primary);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -729,7 +731,7 @@ html, body {
 .st-dashboard {
   height: 100%;
   overflow-y: auto; overflow-x: hidden;
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 .dash-shell {
