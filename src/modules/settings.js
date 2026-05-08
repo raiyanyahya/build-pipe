@@ -29,7 +29,7 @@ export function initSettings() {
 
   stEl('stAiProvider')?.addEventListener('change', () => {
     const provider = stEl('stAiProvider').value;
-    const defaultModel = THEME_MODELS[provider] || 'gpt-5.4-mini';
+    const defaultModel = THEME_MODELS[provider] || 'gpt-4o-mini';
     stEl('stDefaultModel').placeholder = defaultModel;
     stEl('stDefaultModel').value = defaultModel;
   });
@@ -42,7 +42,7 @@ export function initSettings() {
   stEl('stApiKeySave')?.addEventListener('click', async () => {
     const provider = stEl('stAiProvider').value;
     const key = stEl('stApiKey').value.trim();
-    const model = stEl('stDefaultModel').value.trim() || (THEME_MODELS[provider] || 'gpt-5.4-mini');
+    const model = stEl('stDefaultModel').value.trim() || (THEME_MODELS[provider] || 'gpt-4o-mini');
     const status = stEl('stSettingsStatus');
 
     try {
@@ -98,7 +98,7 @@ function selectTheme(theme) {
 async function loadSettings() {
   const model = await window.buildpipe.getModelSetting();
   const provider = model ? providerFor(model) : 'openai';
-  const defaultModel = THEME_MODELS[provider] || 'gpt-5.4-mini';
+  const defaultModel = THEME_MODELS[provider] || 'gpt-4o-mini';
   const validModel = (model && Object.values(THEME_MODELS).includes(model)) ? model : defaultModel;
 
   stEl('stAiProvider').value = provider;
