@@ -27,10 +27,6 @@ export function showEditor() {
   // NOTE: callers are responsible for calling stRenderCanvas after this
 }
 
-export function showDashboard() {
-  stRenderDashboard();
-}
-
 // ─── Dashboard render ─────────────────────────────────────────────────────────
 
 export async function stRenderDashboard() {
