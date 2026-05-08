@@ -113,7 +113,7 @@ export async function stRunFrom(startIndex) {
 
   BP.stairsCurrent.lastRun  = new Date().toISOString();
   BP.stairsCurrent.runCount = (BP.stairsCurrent.runCount || 0) + 1;
-  if (lastRes?.ok) BP.stairsCurrent.successRuns = (BP.stairsCurrent.successRuns || 0) + 1;
+  if (runRecord.status === 'success') BP.stairsCurrent.successRuns = (BP.stairsCurrent.successRuns || 0) + 1;
   BP.stairsCurrent.lastOk = lastRes?.ok !== false;
   BP.stairsCurrent.lastDuration = runRecord.steps.length
     ? (() => {
