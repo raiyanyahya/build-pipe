@@ -1,5 +1,4 @@
 let transform = { x: 0, y: 80, scale: 0.85 };
-let listeners = [];
 let container = null;
 let isPanning = false;
 let start = { x: 0, y: 0 };
@@ -12,7 +11,6 @@ function applyTransform() {
   const t = `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`;
   if (nodes) nodes.style.transform = t;
   if (svg) svg.style.transform = t;
-  listeners.forEach(fn => fn(transform));
 }
 
 export function initCanvas(ct) {
@@ -104,10 +102,3 @@ export function fitToView(nodeElements) {
   applyTransform();
 }
 
-export function getTransform() {
-  return { ...transform };
-}
-
-export function onTransformChange(fn) {
-  listeners.push(fn);
-}
