@@ -1,4 +1,4 @@
-import { stEl, stUid, stFmt } from './utils.js';
+import { stEl, stUid, stFmt, escapeHtml, providerFor, getAddRow, getTopbar, showEditor } from './utils.js';
 import BP from './state.js';
 import { stShowTemplatesModal } from './templates.js';
 
@@ -7,27 +7,7 @@ async function openPipeline(sc) {
   stOpen(sc);
 }
 
-// ─── DOM helpers ─────────────────────────────────────────────────────────────
-
-function getAddRow() { return document.querySelector('.st-add-row'); }
-function getTopbar()  { return document.querySelector('.st-topbar'); }
-
 // ─── Show / hide the pipeline editor ─────────────────────────────────────────
-
-export function showEditor() {
-  const dash   = stEl('stDashboard');
-  const canvas = document.getElementById('stCanvas');
-  const topbar = getTopbar();
-  const addRow = getAddRow();
-
-  if (dash)   dash.style.display   = 'none';
-  if (canvas) canvas.style.display = '';
-  if (topbar) topbar.style.display = '';
-  if (addRow) addRow.style.display = '';
-  // NOTE: callers are responsible for calling stRenderCanvas after this
-}
-
-// ─── Dashboard render ─────────────────────────────────────────────────────────
 
 export async function stRenderDashboard() {
   const canvasWrap = stEl('stCanvasWrap');
@@ -58,7 +38,7 @@ export async function stRenderDashboard() {
 
   const all          = await window.buildpipe.listStaircases();
   const model        = await window.buildpipe.getModelSetting();
-  const aiProvider   = model && /^claude-/.test(model) ? 'anthropic' : 'openai';
+  const aiProvider   = providerFor(model);
   const hasKey       = await window.buildpipe.hasKey(aiProvider);
   const modelLabel   = model || (aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-sonnet-4-6');
   const published    = all.filter(s => s.status === 'published');
@@ -182,7 +162,7 @@ export async function stRenderDashboard() {
             <div class="dash-card ${status}${s.pinned ? ' pinned' : ''}" data-id="${s.id}">
               <div class="dash-card-glow"></div>
               <div class="dash-card-header">
-                <div class="dash-card-name" title="${(s.name || 'Untitled').replace(/"/g, '&quot;')}">${s.name || 'Untitled'}</div>
+                <div class="dash-card-name" title="${escapeHtml(s.name || 'Untitled')}">${escapeHtml(s.name || 'Untitled')}</div>
                 <span class="dash-card-status ${status}">
                   <span class="dash-card-status-dot"></span>${status}
                 </span>
@@ -243,7 +223,7 @@ export async function stRenderDashboard() {
           ${recent.slice(0, 8).map(s => `
           <div class="dash-activity-item" data-id="${s.id}">
             <span class="dash-activity-dot ${s.lastOk !== false ? 'ok' : 'err'}"></span>
-            <span class="dash-activity-name">${s.name || 'Untitled'}</span>
+            <span class="dash-activity-name">${escapeHtml(s.name || 'Untitled')}</span>
             <span class="dash-activity-status ${s.lastOk !== false ? 'ok' : 'err'}">${s.lastOk !== false ? 'Success' : 'Failed'}</span>
             <span class="dash-activity-dur">${s.lastDuration || '—'}</span>
             <span class="dash-activity-time">${stFmt(s.lastRun)}</span>

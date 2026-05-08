@@ -1,9 +1,8 @@
-import { stEl, stUid } from './utils.js';
+import { stEl, stUid, escapeHtml, showEditor, STEP_ICONS, STEP_TYPE_LABELS } from './utils.js';
 import BP from './state.js';
 import { stLog, stLoadLog } from './log.js';
 import { initDragDrop } from './dragdrop.js';
 import { initCanvas, destroyCanvas, zoomIn, zoomOut, fitToView } from './canvas.js';
-import { showEditor } from './dashboard.js';
 
 const ST_SAMPLE = {
   id: 'sample-morning-briefing',
@@ -71,7 +70,7 @@ export async function stLoadAll() {
     const el = document.createElement('div');
     el.className = `st-project-item${sc.status === 'published' ? ' published' : ''}`;
     el.dataset.id = sc.id;
-    el.innerHTML = `<span class="st-proj-dot"></span><span class="st-project-name-text">${sc.name || 'Untitled'}</span>`;
+    el.innerHTML = `<span class="st-proj-dot"></span><span class="st-project-name-text">${escapeHtml(sc.name || 'Untitled')}</span>`;
     el.addEventListener('click', () => stOpen(sc));
     list.appendChild(el);
   }
@@ -80,6 +79,7 @@ export async function stLoadAll() {
 
 export function stOpen(sc) {
   try {
+    if (BP.stairsCurrent) BP.pushUndo();
     BP.stairsCurrent = JSON.parse(JSON.stringify(sc));
     BP.stairsOutputs = {};
     stEl('stName').value = sc.name || '';
@@ -92,7 +92,6 @@ export function stOpen(sc) {
     showEditor();
     stRenderCanvas();
     stLoadLog();
-    BP.pushUndo();
   } catch (e) {
     stLog(`Error opening pipeline: ${e.message}`, 'log-error');
   }
@@ -193,7 +192,7 @@ const GAP_Y = 80;
 function positionNodes(steps) {
   const cols = Math.min(3, steps.length);
   steps.forEach((step, i) => {
-    if (!step._x || !step._y) {
+    if (typeof step._x !== 'number' || typeof step._y !== 'number') {
       const col = i % cols;
       const row = Math.floor(i / cols);
       step._x = col * (NODE_W + GAP_X);
@@ -210,22 +209,14 @@ function stBuildNode(step, index) {
   el.style.left = `${step._x || 0}px`;
   el.style.top = `${step._y || 0}px`;
 
-  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE', if: 'IF', loop: 'LOOP', notify: 'NOTIFY' }[step.type] || step.type.toUpperCase();
-  const iconSvg = {
-    code:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    ai:     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-    http:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
-    file:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-    if:     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>',
-    loop:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
-    notify: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
-  };
+  const typeLabel = STEP_TYPE_LABELS[step.type] || step.type.toUpperCase();
+  const iconSvg = STEP_ICONS;
 
   el.innerHTML = `
     <div class="st-node-header">
       <div class="st-node-icon type-${step.type}">${iconSvg[step.type] || ''}</div>
       <div class="st-node-label-wrap">
-        <div class="st-node-label">${step.label || 'Untitled step'}</div>
+        <div class="st-node-label">${escapeHtml(step.label || 'Untitled step')}</div>
         <div class="st-node-type-tag">${typeLabel}</div>
       </div>
       <span class="st-node-dur" data-dur="${step.id}"></span>
@@ -289,16 +280,8 @@ function stOpenNodeModal(step) {
   const existing = document.querySelector('.st-node-modal');
   if (existing) existing.remove();
 
-  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE', if: 'IF', loop: 'LOOP', notify: 'NOTIFY' }[step.type] || '';
-  const iconMap = {
-    code:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    ai:     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-    http:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
-    file:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>',
-    if:     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>',
-    loop:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
-    notify: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
-  };
+  const typeLabel = STEP_TYPE_LABELS[step.type] || '';
+  const iconMap = STEP_ICONS;
 
   const modal = document.createElement('div');
   modal.className = 'st-node-modal';
@@ -308,7 +291,7 @@ function stOpenNodeModal(step) {
       <div class="st-node-modal-hdr">
         <div class="st-node-icon type-${step.type}" style="width:32px;height:32px;border-radius:8px;">${iconMap[step.type] || ''}</div>
         <div style="flex:1;min-width:0;">
-          <input class="st-node-modal-title" value="${(step.label || 'Untitled').replace(/"/g, '&quot;')}" data-modal-label="${step.id}" placeholder="Step name" />
+          <input class="st-node-modal-title" value="${escapeHtml((step.label || 'Untitled'))}" data-modal-label="${step.id}" placeholder="Step name" />
           <div style="font-size:10px;opacity:0.4;letter-spacing:0.06em;">${typeLabel}</div>
         </div>
         <button class="st-node-modal-close" title="Close">✕</button>
@@ -325,7 +308,7 @@ function stOpenNodeModal(step) {
       <div class="st-node-modal-output">
         <div class="st-step-output-wrap">
           <button class="st-step-copy-btn" data-copy-output="${step.id}" title="Copy output">⎘ Copy</button>
-          <pre class="st-step-output">${BP.stairsOutputs[step.id].output.slice(0, 4000)}</pre>
+          <pre class="st-step-output">${escapeHtml(BP.stairsOutputs[step.id].output.slice(0, 4000))}</pre>
         </div>
       </div>` : ''}
     </div>`;
@@ -472,7 +455,7 @@ function stBuildVerticalCard(step, index) {
   el.dataset.index = String(index);
   el.draggable = true;
 
-  const typeLabel = { code: 'CODE', ai: 'AI', http: 'HTTP', file: 'FILE', if: 'IF', loop: 'LOOP', notify: 'NOTIFY' }[step.type] || step.type.toUpperCase();
+  const typeLabel = STEP_TYPE_LABELS[step.type] || step.type.toUpperCase();
   const typeCls = { code: 'st-type-code', ai: 'st-type-ai', http: 'st-type-http', file: 'st-type-file', if: 'st-type-if', loop: 'st-type-loop', notify: 'st-type-notify' }[step.type] || '';
 
   el.innerHTML = `
@@ -480,7 +463,7 @@ function stBuildVerticalCard(step, index) {
       <span class="st-step-grip" title="Drag to reorder">⠿</span>
       <span class="st-step-indicator"></span>
       <span class="st-step-type-badge ${typeCls}">${typeLabel}</span>
-      <span class="st-step-label" contenteditable="true" data-id="${step.id}">${step.label || 'Untitled step'}</span>
+      <span class="st-step-label" contenteditable="true" data-id="${step.id}">${escapeHtml(step.label || 'Untitled step')}</span>
       <span class="st-step-duration" data-dur="${step.id}"></span>
       <div class="st-step-actions">
         <button class="st-step-action-btn dup" data-dup="${step.id}" title="Duplicate step">⧉</button>

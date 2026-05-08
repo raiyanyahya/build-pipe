@@ -25,7 +25,8 @@ const varsFile    = () => path.join(configDir(), 'vars.json');
 
 // ── Active trigger state ──────────────────────────────────────────────────────
 const activeTriggers = new Map(); // pipelineId → { cancel() }
-let webhookServer = null;
+const webhookServers = new Map(); // port → server instance
+const webhookRateLimit = new Map(); // pipelineId → { count, reset }
 
 function deactivateTrigger(pipelineId) {
   const t = activeTriggers.get(pipelineId);
@@ -54,13 +55,25 @@ function activateTrigger(trigger) {
     } catch (e) { console.error('[buildpipe] watch error:', e?.message); }
   }
   if (trigger.type === 'webhook') {
-    if (!webhookServer) {
-      const port = parseInt(trigger.config?.port) || 9876;
-      webhookServer = createServer((req, res) => {
+    const port = parseInt(trigger.config?.port) || 9876;
+    const key = String(port);
+    if (!webhookServers.has(key)) {
+      const server = createServer((req, res) => {
         if (req.method === 'POST') {
           const m = req.url.match(/^\/run\/([^/?#]+)/);
           if (m) {
-            getWin()?.webContents.send('bp:triggerFired', m[1]);
+            const pid = m[1];
+            const now = Date.now();
+            const rl = webhookRateLimit.get(pid) || { count: 0, reset: now + 60000 };
+            if (now > rl.reset) { rl.count = 0; rl.reset = now + 60000; }
+            if (rl.count >= 60) {
+              res.writeHead(429, { 'Content-Type': 'application/json' });
+              res.end('{"ok":false,"error":"rate limit exceeded"}');
+              return;
+            }
+            rl.count++;
+            webhookRateLimit.set(pid, rl);
+            getWin()?.webContents.send('bp:triggerFired', pid);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end('{"ok":true}');
             return;
@@ -68,7 +81,8 @@ function activateTrigger(trigger) {
         }
         res.writeHead(404); res.end();
       });
-      webhookServer.listen(port, '127.0.0.1');
+      server.listen(port, '127.0.0.1');
+      webhookServers.set(key, server);
     }
     activeTriggers.set(trigger.pipelineId, { cancel: () => {} });
   }
@@ -387,6 +401,8 @@ ipcMain.handle('bp:importPipeline', async () => {
     properties: ['openFile'],
   });
   if (canceled || !filePaths.length) return { ok: false };
+  const stat = await fs.promises.stat(filePaths[0]);
+  if (stat.size > 5 * 1024 * 1024) return { ok: false, error: 'File too large (max 5 MB)' };
   const raw = await fs.promises.readFile(filePaths[0], 'utf8');
   let pipeline;
   try { pipeline = JSON.parse(raw); } catch { return { ok: false, error: 'Invalid JSON' }; }
@@ -408,7 +424,7 @@ ipcMain.handle('bp:runCode', async (_e, command) => {
   try {
     await fs.promises.writeFile(tmpFile, command, 'utf8');
     return await new Promise(resolve => {
-      exec(`bash ${tmpFile}`, { timeout: 30000 }, (err, stdout, stderr) => {
+      exec(`bash "${tmpFile}"`, { timeout: 30000 }, (err, stdout, stderr) => {
         if (err) resolve({ ok: false, output: (stderr || err.message).trim() });
         else resolve({ ok: true, output: stdout.trim() });
       });
@@ -458,7 +474,8 @@ ipcMain.handle('bp:saveLog', async (_e, { staircaseId, logText }) => {
     safeId(staircaseId);
     await fs.promises.mkdir(logDir(), { recursive: true });
     const logFile = path.join(logDir(), `${staircaseId}.log`);
-    await fs.promises.writeFile(logFile, logText, 'utf8');
+    const capped = logText.length > 500000 ? logText.slice(logText.length - 500000) : logText;
+    await fs.promises.writeFile(logFile, capped, 'utf8');
     return { ok: true };
   } catch (e) { return { ok: false, error: e.message }; }
 });

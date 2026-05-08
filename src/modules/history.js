@@ -1,4 +1,5 @@
 import BP from './state.js';
+import { escapeHtml } from './utils.js';
 
 export async function stShowHistoryModal() {
   const existing = document.querySelector('.bp-history-modal');
@@ -19,7 +20,7 @@ export async function stShowHistoryModal() {
         <div class="bp-modal-icon type-history">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div class="bp-modal-title">Run History <span class="bp-modal-subtitle">— ${pipelineName}</span></div>
+        <div class="bp-modal-title">Run History <span class="bp-modal-subtitle">— ${escapeHtml(pipelineName)}</span></div>
         <button class="bp-modal-close">✕</button>
       </div>
       <div class="bp-modal-body bp-history-body">
@@ -95,7 +96,7 @@ function renderRunDetail(run) {
             <span class="bp-hstep-type">${s.type?.toUpperCase()}</span>
             <span class="bp-hstep-dur">${s.duration ? s.duration + 's' : '—'}</span>
           </div>
-          ${s.output ? `<pre class="bp-hstep-output">${s.output.slice(0, 500)}</pre>` : ''}
+          ${s.output ? `<pre class="bp-hstep-output">${escapeHtml(s.output.slice(0, 500))}</pre>` : ''}
         </div>`).join('')}
     </div>`;
 }

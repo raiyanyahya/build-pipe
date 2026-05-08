@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld('buildpipe', {
   listTriggers: () => ipcRenderer.invoke('bp:listTriggers'),
   setTrigger: (trigger) => ipcRenderer.invoke('bp:setTrigger', trigger),
   removeTrigger: (pipelineId) => ipcRenderer.invoke('bp:removeTrigger', pipelineId),
-  onTriggerFired: (cb) => { ipcRenderer.on('bp:triggerFired', (_e, pipelineId) => cb(pipelineId)); },
+  onTriggerFired: (cb) => { ipcRenderer.removeAllListeners('bp:triggerFired'); ipcRenderer.on('bp:triggerFired', (_e, pipelineId) => cb(pipelineId)); },
 
   listVars: () => ipcRenderer.invoke('bp:listVars'),
   setVar: (key, value) => ipcRenderer.invoke('bp:setVar', key, value),

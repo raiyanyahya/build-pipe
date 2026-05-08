@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
   <title>buildpipe</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -184,21 +185,6 @@
     </div>
   </div>
 
-  <script type="module" src="modules/state.js"></script>
-  <script type="module" src="modules/utils.js"></script>
-  <script type="module" src="modules/log.js"></script>
-  <script type="module" src="modules/render.js"></script>
-  <script type="module" src="modules/dragdrop.js"></script>
-  <script type="module" src="modules/canvas.js"></script>
-  <script type="module" src="modules/steps.js"></script>
-  <script type="module" src="modules/dashboard.js"></script>
-  <script type="module" src="modules/run.js"></script>
-  <script type="module" src="modules/ai-build.js"></script>
-  <script type="module" src="modules/events.js"></script>
-  <script type="module" src="modules/settings.js"></script>
-  <script type="module" src="modules/triggers.js"></script>
-  <script type="module" src="modules/history.js"></script>
-  <script type="module" src="modules/templates.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

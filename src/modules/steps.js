@@ -13,8 +13,7 @@ export async function stRunStep(step, outputs, vars = {}) {
     case 'ai': {
       const input  = stResolve(c.prompt, outputs, vars);
       const system = c.system ? stResolve(c.system, outputs, vars) : 'You are a helpful assistant.';
-      const model  = await window.buildpipe.getModelSetting();
-      const res = await window.buildpipe.aiRequest({ input, system, model });
+      const res = await window.buildpipe.aiRequest({ input, system });
       if (!res?.ok) return { ok: false, output: res?.error || 'AI request failed' };
       return { ok: true, output: res.text || '' };
     }

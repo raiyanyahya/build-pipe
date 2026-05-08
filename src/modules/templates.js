@@ -1,4 +1,4 @@
-import { stUid } from './utils.js';
+import { stUid, escapeHtml } from './utils.js';
 import BP from './state.js';
 
 const TEMPLATES = [
@@ -580,8 +580,8 @@ export function stShowTemplatesModal() {
             <button class="bp-template-card" data-idx="${i}">
               <div class="bp-tmpl-icon">${t.icon}</div>
               <div class="bp-tmpl-body">
-                <div class="bp-tmpl-name">${t.name}</div>
-                <div class="bp-tmpl-desc">${t.desc}</div>
+                <div class="bp-tmpl-name">${escapeHtml(t.name)}</div>
+                <div class="bp-tmpl-desc">${escapeHtml(t.desc)}</div>
                 <div class="bp-tmpl-tags">${t.tags.map(tag => `<span class="bp-tmpl-tag type-${tag}">${tag}</span>`).join('')}</div>
               </div>
               <div class="bp-tmpl-steps">${t.steps.length} steps</div>
@@ -633,7 +633,7 @@ async function cloneTemplate(tmpl) {
   await window.buildpipe.saveStaircase(BP.stairsCurrent);
 
   const { stLoadAll, stRenderCanvas } = await import('./render.js');
-  const { showEditor } = await import('./dashboard.js');
+  const { showEditor } = await import('./utils.js');
   await stLoadAll();
   showEditor();
 

@@ -1,4 +1,4 @@
-import { stEl } from './utils.js';
+import { stEl, escapeHtml } from './utils.js';
 import BP from './state.js';
 
 export async function stShowTriggersModal() {
@@ -21,7 +21,7 @@ export async function stShowTriggersModal() {
         <div class="bp-modal-icon type-trigger">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
-        <div class="bp-modal-title">Triggers <span class="bp-modal-subtitle">— ${pipelineName}</span></div>
+        <div class="bp-modal-title">Triggers <span class="bp-modal-subtitle">— ${escapeHtml(pipelineName)}</span></div>
         <button class="bp-modal-close">✕</button>
       </div>
       <div class="bp-modal-body">

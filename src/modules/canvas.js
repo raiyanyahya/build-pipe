@@ -29,9 +29,10 @@ function onMouseDown(e) {
   isPanning = true;
   start = { x: e.clientX, y: e.clientY };
   startTransform = { x: transform.x, y: transform.y };
-  container.style.cursor = 'grabbing';
+  if (container) container.style.cursor = 'grabbing';
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('blur', onMouseUp);
 }
 
 function onMouseMove(e) {
@@ -46,6 +47,7 @@ function onMouseUp() {
   if (container) container.style.cursor = '';
   document.removeEventListener('mousemove', onMouseMove);
   document.removeEventListener('mouseup', onMouseUp);
+  window.removeEventListener('blur', onMouseUp);
 }
 
 function onWheel(e) {

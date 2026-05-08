@@ -96,7 +96,7 @@ export async function stRunFrom(startIndex) {
       }
     } else {
       stLog(`✕ Error: ${res.output}`, 'log-error');
-      if (step.config?.continueOnError === '1' || step.config?.continueOnError === true) {
+      if (step.config?.continueOnError === '1') {
         stLog(`→ Continuing (continueOnError)`, 'log-dim');
       } else {
         break;

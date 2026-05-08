@@ -1,4 +1,4 @@
-import { stEl } from './utils.js';
+import { stEl, providerFor } from './utils.js';
 import BP from './state.js';
 
 const THEME_MODELS = {
@@ -8,9 +8,7 @@ const THEME_MODELS = {
 
 const THEME_LIST = ['dark', 'ocean', 'forest', 'sunset', 'midnight', 'light', 'cream', 'rose', 'nord', 'amber', 'dracula'];
 
-function providerFor(model) {
-  return /^claude-/.test(model) ? 'anthropic' : 'openai';
-}
+let osSchemeListener = null;
 
 export function initSettings() {
   stEl('stSettingsBtn')?.addEventListener('click', () => {
@@ -85,7 +83,9 @@ export function initSettings() {
   window.buildpipe.getThemeSetting().then(saved => {
     if (!saved) applyOsTheme();
   });
-  osScheme.addEventListener('change', applyOsTheme);
+  if (osSchemeListener) osScheme.removeEventListener('change', osSchemeListener);
+  osSchemeListener = applyOsTheme;
+  osScheme.addEventListener('change', osSchemeListener);
 }
 
 function selectTheme(theme) {
