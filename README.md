@@ -222,7 +222,9 @@ The AI generates a structured JSON pipeline (name + steps with configs), which i
 
 ### Pipeline Templates
 
-Eight ready-made pipelines you can clone and customise in one click. Open **Templates** from the dashboard.
+43 ready-made pipelines you can clone and customise in one click. Open **Templates** from the dashboard.
+
+#### Developer Productivity
 
 | Template | Description |
 |---|---|
@@ -230,10 +232,70 @@ Eight ready-made pipelines you can clone and customise in one click. Open **Temp
 | 📰 HN Top Stories Digest | Hacker News top stories → AI summary → file |
 | 💾 File Backup | Read → transform → write to backup path |
 | 🌤 Weather Briefing | Fetch weather JSON → AI summary → system notification |
-| 🔔 GitHub Notifications | `gh` notifications → AI summary → file |
-| 🔍 Error Log Monitor | Read log file → check for errors (IF step) → notify |
+| 🔔 GitHub Notifications | GitHub notifications → AI summary → file |
+| 🔍 Error Log Monitor | Read log file → check for errors → notify |
 | 📊 Daily Code Stats | Git log → git diff → AI journal entry → append |
 | 🔗 Batch URL Checker | Loop over URL list → curl each → save report |
+| 📝 Daily Standup Generator | Today's git commits → AI standup → save to file |
+| 📋 Changelog Entry Generator | Git log since last tag → AI formats release notes → CHANGELOG |
+| 🔎 Code TODO Hunter | Scan project for TODOs and FIXMEs → AI prioritises → save report |
+| 📄 PR Description Writer | Git diff vs main → AI writes PR description → save draft |
+| 🔒 NPM Security Audit | `npm audit` → AI analyses risks → notify if critical |
+| 🌿 Stale Branch Report | Merged git branches → AI flags stale ones → save cleanup list |
+| 💬 Commit Message Suggester | Staged diff → AI suggests 3 commit message options |
+| 📦 Package Update Report | `npm outdated` → AI assesses update risk → save update plan |
+| 🐳 Docker Health Check | Inspect running containers → AI assesses health → notify on issues |
+
+#### System & DevOps
+
+| Template | Description |
+|---|---|
+| 💽 Disk Space Alert | Check disk usage → alert if any partition over 80% |
+| 🖥 System Resource Snapshot | CPU, memory, disk stats → AI health assessment → save report |
+| 🧠 Process Memory Monitor | Top memory-consuming processes → AI identifies hogs → save report |
+| 🔐 SSL Certificate Checker | Check SSL cert expiry for your domain → notify if expiring soon |
+| 📈 Log Error Spike Detector | Count recent log errors → alert if spike above threshold |
+| ⏰ Cron Job Auditor | List all cron jobs → AI describes each one → save audit |
+| 🗂 Environment Variable Inventory | List env vars → AI flags anything sensitive or misconfigured |
+
+#### AI-Powered Writing
+
+| Template | Description |
+|---|---|
+| 🗒 Meeting Notes Structurer | Raw meeting notes → AI organises into decisions/actions → save |
+| 📖 Code File Explainer | Read a source file → AI explains it in plain English → save docs |
+| 🐛 Bug Report Analyzer | Error log or stack trace → AI diagnoses root cause → save analysis |
+| 📅 Weekly Project Summary | This week's git activity → AI executive summary → save report |
+| 📘 README Auto-Generator | Describe your project → AI writes a complete README → save |
+| 🗄 SQL Query Optimizer | Read a SQL query file → AI optimises it → save optimized version |
+
+#### Data & Files
+
+| Template | Description |
+|---|---|
+| 🗃 JSON Formatter | Read a JSON file → pretty-print → write back formatted |
+| 📊 CSV Data Summarizer | Read a CSV file → AI analyses the data → save insights |
+| 🔭 Large File Finder | Find files over 100 MB in home directory → save report |
+| 📁 Directory Size Report | Measure key directory sizes → AI identifies storage hogs → save |
+
+#### APIs & Web
+
+| Template | Description |
+|---|---|
+| ₿ Bitcoin Price Alert | Fetch BTC price → check against threshold → notify |
+| 🌐 Website Uptime Monitor | HTTP check your site → alert immediately if it goes down |
+| 📈 GitHub Repo Stats Tracker | Fetch repo metrics → AI writes growth summary → save report |
+| 🌍 Public IP Change Detector | Fetch current public IP → compare to last known → notify if changed |
+| 🟠 Reddit Subreddit Digest | Fetch hot posts from a subreddit → AI summarises → save digest |
+| 💬 Slack Daily Digest Poster | System + git info → AI formats → POST to Slack |
+| 🤖 OpenAI API Usage Checker | Fetch OpenAI usage stats → AI summarises spend → save report |
+| ✅ GitHub Actions Status Check | Fetch CI run status for your repo → notify on failures |
+| 🔌 Network Port Scanner | Check which local ports are in use → save report |
+| 🩺 API Endpoint Health Check | Loop through your API endpoints → check each one → report failures |
+| 📜 Dependency License Checker | List npm package licenses → AI flags non-permissive ones → save |
+| 🧑‍💻 AI Code Reviewer | Git diff of recent commits → AI performs code review → save feedback |
+| ✍️ Markdown Blog Publisher | Read draft post → AI polishes prose → save final version |
+| 💰 Infrastructure Cost Estimator | Describe your stack → AI estimates monthly cloud costs → save report |
 
 ---
 
