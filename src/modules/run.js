@@ -105,8 +105,6 @@ export async function stRunFrom(startIndex) {
   }
 
   // Save run history
-  const lastStep = BP.stairsCurrent.steps[BP.stairsCurrent.steps.length - 1];
-  const lastRes  = lastStep ? BP.stairsOutputs[lastStep.id] : null;
   runRecord.endedAt = new Date().toISOString();
   runRecord.status  = halted ? 'stopped' : (runRecord.steps.some(s => !s.ok) ? 'failed' : 'success');
   window.buildpipe.saveRun(runRecord).catch(() => {});
@@ -114,7 +112,7 @@ export async function stRunFrom(startIndex) {
   BP.stairsCurrent.lastRun  = new Date().toISOString();
   BP.stairsCurrent.runCount = (BP.stairsCurrent.runCount || 0) + 1;
   if (runRecord.status === 'success') BP.stairsCurrent.successRuns = (BP.stairsCurrent.successRuns || 0) + 1;
-  BP.stairsCurrent.lastOk = lastRes?.ok !== false;
+  BP.stairsCurrent.lastOk = runRecord.status === 'success';
   BP.stairsCurrent.lastDuration = runRecord.steps.length
     ? (() => {
         const total = runRecord.steps.reduce((s, step) => s + (step.duration || 0), 0);
