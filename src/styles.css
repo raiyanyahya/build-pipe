@@ -1334,6 +1334,7 @@ html, body {
   flex-shrink: 0;
   font-size: 14px;
 }
+.st-node-icon svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
 .st-node-icon.type-code { background: var(--type-code-bg); color: var(--type-code); }
 .st-node-icon.type-ai   { background: var(--type-ai-bg);   color: var(--type-ai); }
 .st-node-icon.type-http { background: var(--type-http-bg); color: var(--type-http); }

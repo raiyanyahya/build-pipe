@@ -1,6 +1,6 @@
 {
   "name": "buildpipe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A local-first pipeline automation app for developers, powered by AI",
   "author": {
     "name": "Raiyan Yahya",
@@ -64,7 +64,7 @@
     "compression": "normal"
   },
   "devDependencies": {
-    "electron": "^40.0.0",
+    "electron": "^40.10.0",
     "electron-builder": "^26.8.1"
   }
 }
