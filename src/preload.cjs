@@ -39,6 +39,9 @@ contextBridge.exposeInMainWorld('buildpipe', {
 
   notify: (opts) => ipcRenderer.invoke('bp:notify', opts),
 
+  checkForUpdate: () => ipcRenderer.invoke('bp:checkForUpdate'),
+  openReleasesPage: () => ipcRenderer.invoke('bp:openReleasesPage'),
+
   exportPipeline: (pipeline) => ipcRenderer.invoke('bp:exportPipeline', pipeline),
   importPipeline: () => ipcRenderer.invoke('bp:importPipeline'),
 

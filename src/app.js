@@ -4,6 +4,7 @@ import { initEvents } from './modules/events.js';
 import { initSettings } from './modules/settings.js';
 import { stInitLog } from './modules/log.js';
 import { stRenderDashboard } from './modules/dashboard.js';
+import { initUpdateCheck } from './modules/update.js';
 
 function initTitlebar() {
   document.getElementById('winMinimize')?.addEventListener('click', () => window.buildpipe.winMinimize());
@@ -40,4 +41,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   stInitLog();
   await stLoadAll();
   stRenderDashboard();
+  // Check for a newer release shortly after launch, off the critical path.
+  setTimeout(() => initUpdateCheck(), 3000);
 });

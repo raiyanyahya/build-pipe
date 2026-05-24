@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, safeStorage, Notification, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, Notification, dialog, shell } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -570,4 +570,54 @@ ipcMain.handle('bp:notify', (_e, { title, body }) => {
     if (Notification.isSupported()) new Notification({ title: title || 'buildpipe', body: body || '' }).show();
   } catch {}
   return { ok: true, output: `Notification sent: ${title}` };
+});
+
+// ── Update check ──────────────────────────────────────────────────────────────
+// Releases are published to GitHub Releases as tag v<version> (see build.yml).
+// There is no auto-updater; we only notify and link to the releases page.
+const REPO_SLUG     = 'raiyanyahya/buildpipe';
+const RELEASES_PAGE = `https://github.com/${REPO_SLUG}/releases`;
+
+// Compare two "major.minor.patch" strings. Returns 1 if a>b, -1 if a<b, 0 if equal.
+function cmpSemver(a, b) {
+  const pa = String(a).split('.');
+  const pb = String(b).split('.');
+  for (let i = 0; i < 3; i++) {
+    const x = parseInt(pa[i], 10) || 0;
+    const y = parseInt(pb[i], 10) || 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+
+// Fetch the latest published version from GitHub and compare to the running one.
+// Fail-silent: any network/parse error resolves to "no update" so we never nag or throw.
+ipcMain.handle('bp:checkForUpdate', async () => {
+  const current = app.getVersion();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(`https://api.github.com/repos/${REPO_SLUG}/releases/latest`, {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'buildpipe' },
+      signal: controller.signal,
+    });
+    if (!res.ok) return { updateAvailable: false, current };
+    const data = await res.json();
+    const m = String(data?.tag_name || '').match(/(\d+)\.(\d+)\.(\d+)/);
+    if (!m) return { updateAvailable: false, current };
+    const latest = `${m[1]}.${m[2]}.${m[3]}`;
+    return { updateAvailable: cmpSemver(latest, current) > 0, latest, current };
+  } catch {
+    return { updateAvailable: false, current };
+  } finally {
+    clearTimeout(timer);
+  }
+});
+
+// Open the releases page in the user's browser. The URL is hardcoded — never
+// taken from the network response — so the update check can't redirect openExternal.
+ipcMain.handle('bp:openReleasesPage', async () => {
+  await shell.openExternal(RELEASES_PAGE);
+  return { ok: true };
 });

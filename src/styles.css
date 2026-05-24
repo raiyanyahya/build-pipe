@@ -579,11 +579,62 @@ html, body {
 .win-ctrl-close { background: #f87171; }
 .win-ctrl-close:hover { color: rgba(0,0,0,0.6); }
 
+body { display: flex; flex-direction: column; }
+
 #appWrap {
   display: flex;
-  height: calc(100% - var(--titlebar-h));
+  flex: 1;
+  min-height: 0;
   background: transparent;
 }
+
+/* ── Update banner ──────────────────────────────────────────── */
+.bp-update-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  background: var(--accent-bg);
+  border-bottom: 1px solid var(--accent-border);
+}
+.bp-update-banner.hidden { display: none; }
+.bp-update-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.bp-update-text { flex: 1; min-width: 0; }
+.bp-update-text strong { color: var(--accent); font-weight: 600; }
+.bp-update-view {
+  border: 1px solid var(--accent-border);
+  background: transparent;
+  color: var(--accent);
+  font: inherit; font-size: 12px;
+  padding: 3px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.bp-update-view:hover { background: var(--accent-bg-hover); }
+.bp-update-dismiss {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.bp-update-dismiss:hover { color: var(--text-primary); }
 
 /* ═══════════════════════════════════════════════════════════════
    Stairs Wrap
