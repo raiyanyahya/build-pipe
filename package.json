@@ -64,7 +64,7 @@
     "compression": "normal"
   },
   "devDependencies": {
-    "electron": "^40.10.0",
+    "electron": "^40.10.2",
     "electron-builder": "^26.8.1"
   }
 }
